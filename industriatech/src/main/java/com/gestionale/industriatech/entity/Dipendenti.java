@@ -18,10 +18,10 @@ public class Dipendenti {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column 
+    @Column
     private String nome;
 
-    @Column 
+    @Column
     private String cognome;
 
     // TODO: usare annotazione @Email (dipendenza Validator)
