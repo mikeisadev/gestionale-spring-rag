@@ -37,7 +37,7 @@ public class DipendentiController {
      * 
      * Create  -> HTTP POST    -> @PostMapping      [OK]
      * Read    -> HTTP GET     -> @GetMapping       [OK]
-     * Update  -> HTTP PUT     -> @PutMapping       [DA VEDERE]
+     * Update  -> HTTP PUT     -> @PutMapping       [OK]
      * Delete  -> HTTP DELETE  -> @DeleteMapping    [OK]
      */
 
@@ -59,6 +59,15 @@ public class DipendentiController {
         List<Dipendenti> dipendenti = dipendentiRepository.findAll();
 
         return ResponseEntity.ok(dipendenti);
+    }
+
+    @GetMapping("/dipendenti/{email}")
+    public ResponseEntity<Object> getEmployeeByEmail(@PathVariable String email)
+    {
+        Dipendenti dipendente = dipendentiRepository.findByEmail(email)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Utente non trovato, email " + email + " non trovata"));
+
+        return ResponseEntity.ok(dipendente);
     }
 
     @PostMapping("/dipendenti")

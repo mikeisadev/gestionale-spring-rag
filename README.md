@@ -16,7 +16,7 @@ Stiamo costruendo il controller per sbloccare le operazioni CRUD
 
 | **Azione**          | **Metodo HTTP** |   **Annotazione Spring Boot**       |
 |---------------------|-----------------|-------------------------------------|
-|   Create (CREA)     |    HTTP POST    |     @PostMapping      [DA VEDERE]   |
+|   Create (CREA)     |    HTTP POST    |     @PostMapping      [OK]          |
 |   Read  (LEGGI)     |    HTTP GET     |     @GetMapping       [OK]          |
-|   Update (AGGIORNA) |    HTTP PUT     |     @PutMapping       [DA VEDERE]   |
-|   Delete (ELIMINA)  |    HTTP DELETE  |     @DeleteMapping    [DA VEDERE]   |
+|   Update (AGGIORNA) |    HTTP PUT     |     @PutMapping       [OK]          |
+|   Delete (ELIMINA)  |    HTTP DELETE  |     @DeleteMapping    [OK]          |
