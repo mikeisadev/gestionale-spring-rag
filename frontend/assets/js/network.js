@@ -23,15 +23,15 @@ fetch("http://localhost:8081/api/dipendenti")
         // 3. Loop di ogni singolo oggetto
         response.forEach(function(obj) {
             // 4. Analisi dei dati con log
-            //console.log(obj);
-            // console.table(obj);
+            // console.log(obj);
+            console.table(obj);
 
-            // console.log(
-            //     "ID:", obj.id, 
-            //     "Nome:", obj.nome, 
-            //     "Cognome:", obj.cognome, 
-            //     "Email:", obj.email
-            // );
+            console.log(
+                "ID:", obj.id, 
+                "Nome:", obj.nome, 
+                "Cognome:", obj.cognome, 
+                "Email:", obj.email
+            );
 
             // 5. Inserimento nell'HTML
             const template = `<div class="single-employee">
@@ -50,7 +50,7 @@ fetch("http://localhost:8081/api/dipendenti")
 
             const dataBox = document.querySelector(".data-box");
 
-            console.log(template);
+            // console.log(template);
 
             dataBox.innerHTML += template;
         });
