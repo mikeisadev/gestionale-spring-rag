@@ -96,6 +96,15 @@ public class DipendentiController {
             
             return ResponseEntity.status(400).body(response);
         }
+        else if (request.getEmail().isEmpty())
+        {
+            Map<String, Object> response = Map.of(
+            "message", "Email mancante",
+            "status", "error_missing_data",
+            "request_date", LocalDateTime.now());
+            
+            return ResponseEntity.status(400).body(response);
+        }
 
         // 2) Uso la entity per raccogliere i dati dalla richiesta HTTP
         Dipendenti nuovoDipendente = new Dipendenti();
@@ -111,7 +120,8 @@ public class DipendentiController {
         Map<String, Object> response = Map.of(
             "data", nuovoDipendente,
             "status", "ok",
-            "request_date", LocalDateTime.now()
+            "request_date", LocalDateTime.now(),
+            "message", "Dipendente creato con successo"
         );
 
         // 5) Rispondo al client

@@ -9,6 +9,7 @@
     <!-- Includo qui il CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/card.css">
+    <link rel="stylesheet" href="assets/css/form.css">
 
     <!-- Includo qui Javascript -->
     <script src="assets/js/utils.js"></script>
@@ -20,18 +21,43 @@
 <body>
     <h1 style="text-align: center;">Gestionale</h1>
 
+    <div class="form-container">
+        <form id="form-data-employee" class="employee-form">
+            <div class="form-row">
+                <label>Nome <span class="required">*</span></label>
+                <input type="text" name="nome" id="nome" placeholder="Inserisci il nome del dipendente...">
+            </div>
+
+            <div class="form-row">
+                <label>Cognome <span class="required">*</span></label>
+                <input type="text" name="cognome" id="cognome" placeholder="Inserisci il cognome del dipendente...">
+            </div>
+
+            <div class="form-row">
+                <label>Email <span class="required">*</span></label>
+                <input type="email" name="email" id="email" placeholder="Inserisci l'email del dipendente...">
+            </div>
+
+            <div class="form-row">
+                <input type="submit" value="Crea dipendente">
+            </div>
+
+            <div class="form-row">
+                <p>I campi contrassegnati con "*" sono obbligatori</p>
+            </div>
+        </form>
+    </div>
+
     <div class="main-box">
         <h2>Gestione dipendenti</h2>
 
         <form>
-            <input type="text" placeholder="Inserisci il nome di un dipendente..."/>
+            <input type="text" placeholder="Inserisci il nome di un dipendente..." />
             <input type="submit" value="Invia" />
         </form>
 
         <!-- Genera qui dentro la lista dei dipendenti -->
         <div class="data-box">
-
-
 
         </div>
     </div>
