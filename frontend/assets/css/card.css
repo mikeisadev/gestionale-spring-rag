@@ -98,7 +98,17 @@
 }
 
 .employee-card__detail-value { color: #27364d; font-size: .87rem; font-weight: 600; overflow-wrap: anywhere; }
-.employee-card__actions { display: flex; gap: .65rem; }
+
+.employee-card__actions { 
+    display: flex; 
+    gap: .65rem;
+    flex-direction: column; 
+}
+
+.employee-card__other-actions {
+    display: flex;
+    gap: 10px;
+}
 
 .employee-card__button {
     display: inline-flex;
@@ -119,8 +129,19 @@
 }
 
 .employee-card__button:hover { background: #f4f8fb; border-color: #b9c9d9; }
-.employee-card__button--primary { flex: 1; color: #fff; background: #176b78; border-color: #176b78; }
+
+/* STILE PULSANTE PRIMARIO */
+.employee-card__button--primary { color: #fff; background: #176b78; border-color: #176b78; }
 .employee-card__button--primary:hover { color: #fff; background: #105965; border-color: #105965; }
+
+/* STILE PULSANTE "ELIMINA" */
+.employee-card__button--delete { flex: 1; color: #fff; background: #c11e1e; border-color: #c11e1e; }
+.employee-card__button--delete:hover { color: #fff; background: #910b0b; border-color: #910b0b; }
+
+/* STILE PULSANTE "AGGIORNA" */
+.employee-card__button--update { flex: 1; color: #fff; background: #23941b; border-color: #23941b; }
+.employee-card__button--update:hover { color: #fff; background: #105e0b; border-color: #105e0b; }
+
 .employee-card__button:focus-visible { outline: 3px solid #8bd8ce; outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {

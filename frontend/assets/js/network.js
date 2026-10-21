@@ -32,26 +32,10 @@ fetch("http://localhost:8081/api/dipendenti")
                 "Cognome:", obj.cognome, 
                 "Email:", obj.email
             );
-
-            // 5. Inserimento nell'HTML
-            const template = `<div class="single-employee">
-                <div class="employee-data">
-                    <p>${obj.nome} ${obj.cognome}</p>
-                    <p>Contratto di lavoro</p>
-                    <p>Data di iscrizione</p>
-                </div>
-
-                <div class="employee-actions">
-                    <button>Aggiorna</button>
-                    <button>Elimina</button>
-                    <button>Invia email</button>
-                </div>
-            </div>`
-
+        
+            // Seleziono il box
             const dataBox = document.querySelector(".data-box");
 
-            // console.log(template);
-
-            dataBox.innerHTML += template;
+            dataBox.innerHTML += employeeCardTemplate(obj);
         });
     });
