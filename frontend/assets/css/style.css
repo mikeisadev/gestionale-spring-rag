@@ -1,3 +1,8 @@
+/* Reset CSS MINIMO  */
+*, *::before, *::after {
+    box-sizing: border-box;
+} 
+
 /*
     Commento multilinea
 */
@@ -41,4 +46,14 @@ p {
     background-color: rgb(232, 232, 232);
     border: 2px solid black;
     margin-bottom: 5px;
+}
+
+.search-form {
+    position: sticky;
+    top: 10px;
+
+    background: white;
+    padding: 6px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }

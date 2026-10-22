@@ -1,0 +1,35 @@
+.popup {
+    /* Tipo di posizionamento */ 
+    position: fixed;
+
+    /* Posizionamento o anchoring */
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+
+    /* Allineamento */
+    text-align: center;
+
+    /* Larghezza e altezza */
+    height: 100%;
+    width: 100%;
+
+    /* Sfondo */
+    background-color: rgba(0, 0, 0, 0.72);
+
+    /* Ordinamento */
+    z-index: 9999;
+
+    /* Imbottitura */
+    padding: 50px;
+}
+
+.popup .popup-inner-content {
+    background-color: white;
+    height: 300px;
+}
+
+.popup h1 {
+    font-size: 20px;
+}

@@ -13,6 +13,12 @@
  */
 console.log("[FILE JS CHIAMATE DI RETE] Chiamate di rete");
 
+/**
+ * TODO:
+ * - Refactoring massivo
+ * - Nuova architettura per il codice frontend
+ */
+
 window.addEventListener("DOMContentLoaded", function() {
     console.log("Si è caricata tutta la pagina HTML");
 
@@ -41,6 +47,51 @@ window.addEventListener("DOMContentLoaded", function() {
 
                 dataBox.innerHTML += employeeCardTemplate(obj);
             });
+
+            // Prima seleziono tutte le card HTML appena renderizzate
+            // e dopo aggancio le azioni della card: elimina, aggiorna e contatta
+            const allCards = document.querySelectorAll(".employee-card");
+
+            // Loop di ogni card
+            allCards.forEach(card => {
+                const deleteButton = card.querySelector(".employee-card__button--delete");
+                const updateButton = card.querySelector(".employee-card__button--update");
+                // const contactButton = card.querySelector("");
+
+                console.log(deleteButton);
+                console.log(updateButton);
+
+                // Gestire l'eliminazione
+                deleteButton.addEventListener("click", function() {
+                    // TODO: RIFARE MEGLIO - Evita il doppio click
+                    deleteButton.setAttribute("disabled", true);
+
+                    const employeeId = deleteButton.getAttribute("data-employee-id")
+                    console.log("VUOI ELIMINARE IL DIPENDENTE:", employeeId)
+
+                    // TODO: Aggiungere preavviso di eliminazione
+                    // la funzione "confirm()" nativa di Javascript
+                    // popup scritto e implementato interamente da noi
+
+                    fetch("http://localhost:8081/api/dipendenti/" + employeeId, {
+                        method: "DELETE"
+                    }).then(response => response.json())
+                      .then(response => {
+                        // Ricarica tutti i dipendenti
+                      })
+                })
+
+                // Gestire l'aggiornamento dipendente
+                updateButton.addEventListener("click", function() {
+                    console.log("Sto gestendo l'update del dipendente")
+
+                    // 1. Aprire PopUp
+                    employeeUpdateForm();
+                    
+                    // 2. Caricare i dati del dipendente da aggiornare nel popup
+                    // 3. Gestire l'aggiornamento del dipendente nel popup
+                });
+            })
         });
 
     // 2 - Chiamata POST con fetch + form html -> creare dipendente
@@ -86,8 +137,14 @@ window.addEventListener("DOMContentLoaded", function() {
     });
 
     // 3 - Chiamata DELETE -> eliminare dipendente
+    function deleteEmployeeById(id) {
+
+    }
 
     // 4 - Chiamata PUT -> aggiornare dipendente
+    function updateEmployeeById(id) {
+
+    }
 
     // 5 - Chiamata GET - Cerca dipendente
 });
