@@ -2,7 +2,7 @@
  * Funzione per ritornare il template della card dipendente
  */
 function employeeCardTemplate(obj) {
-    return `<article id="employee-${obj.id}" class="employee-card" aria-labelledby="employee-mario-name">
+    return `<article id="employee-${obj.id}" class="employee-card" aria-labelledby="employee-mario-name" data-card-id="${obj.id}">
                 <div class="employee-card__banner" aria-hidden="true"></div>
                 <div class="employee-card__content">
                     <div class="employee-card__top">
@@ -82,45 +82,12 @@ function employeeUpdateForm(employee) {
 
     // 3. Seleziono gli elementi dell'HTML iniettato
     const closeButton = document.querySelector(".popup #popup-close");
-    const popupForm = document.querySelector(".popup #update-form-data-employee")
 
     // 4. Aggancio listener o qualsiasi algoritmo
     closeButton.addEventListener('click', function() {
         console.log("Stai chiudedno il popup");
 
         document.body.querySelector(".popup").remove();
-    });
-
-    popupForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        console.log("Stai inviando il popup");
-
-        const formData = {
-            nome: popupForm.querySelector('#nome').value,
-            cognome: popupForm.querySelector('#cognome').value,
-            email: popupForm.querySelector('#email').value
-        }
-
-        console.log(formData);
-
-        // prendere i dati dal form
-        // fare FETCH PUT
-        fetch("http://localhost:8081/api/dipendenti/" + employee.id, {
-            method: 'PUT',
-            body: JSON.stringify(formData),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-            .then(response => response.json())
-            .then(response => {
-                alert("Utente aggiornato con successo")
-                
-                // Ricarica i dipendenti
-            })
-            .catch(error => {
-                alert("Si è verificato un errore durante l'aggiornamento del dipendente")
-            })
     });
 
     console.log(closeButton);

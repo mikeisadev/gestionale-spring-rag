@@ -23,87 +23,42 @@ window.addEventListener("DOMContentLoaded", function() {
     console.log("Si è caricata tutta la pagina HTML");
 
     // 1. Chiamata GET dipendenti
-    fetch("http://localhost:8081/api/dipendenti")
-        .then(response => response.json())
-        .then(response => {
-            // 2. Log completo della risposta del server
-            // console.log(response);
+    async function ottieniDipendenti() {
+        let response = await fetch("http://localhost:8081/api/dipendenti")
+        response = await response.json();
 
-            // 3. Loop di ogni singolo oggetto
-            response.forEach(function(obj) {
-                // 4. Analisi dei dati con log
-                // console.log(obj);
-                // console.table(obj);
+        const dataBox = document.querySelector(".data-box");
 
-                // console.log(
-                //     "ID:", obj.id, 
-                //     "Nome:", obj.nome, 
-                //     "Cognome:", obj.cognome, 
-                //     "Email:", obj.email
-                // );
-            
-                // Seleziono il box
-                const dataBox = document.querySelector(".data-box");
+        dataBox.innerHTML = ""; // Ricorda! Dati sempre freschi!
 
-                dataBox.innerHTML += employeeCardTemplate(obj);
-            });
-
-            // Prima seleziono tutte le card HTML appena renderizzate
-            // e dopo aggancio le azioni della card: elimina, aggiorna e contatta
-            const allCards = document.querySelectorAll(".employee-card");
-
-            // Loop di ogni card
-            allCards.forEach(card => {
-                const deleteButton = card.querySelector(".employee-card__button--delete");
-                const updateButton = card.querySelector(".employee-card__button--update");
-                // const contactButton = card.querySelector("");
-
-                console.log(deleteButton);
-                console.log(updateButton);
-
-                // Gestire l'eliminazione
-                deleteButton.addEventListener("click", function() {
-                    // TODO: RIFARE MEGLIO - Evita il doppio click
-                    deleteButton.setAttribute("disabled", true);
-
-                    const employeeId = deleteButton.getAttribute("data-employee-id")
-                    console.log("VUOI ELIMINARE IL DIPENDENTE:", employeeId)
-
-                    // TODO: Aggiungere preavviso di eliminazione
-                    // la funzione "confirm()" nativa di Javascript
-                    // popup scritto e implementato interamente da noi
-
-                    fetch("http://localhost:8081/api/dipendenti/" + employeeId, {
-                        method: "DELETE"
-                    }).then(response => response.json())
-                      .then(response => {
-                        // Ricarica tutti i dipendenti
-                      })
-                })
-
-                // Gestire l'aggiornamento dipendente
-                updateButton.addEventListener("click", function() {
-                    console.log("Sto gestendo l'update del dipendente")
-
-                    // PRENDIAMO L'ID DIPENDENTE
-                    const employeeId = updateButton.getAttribute("data-employee-id");
-                    console.log("[POST PAUSA]", response, employeeId);
-
-                    // RICERCA DIPENDENTE CON ID
-                    const dipendenteTrovato = response.filter(d => d.id === Number(employeeId));
-
-                    console.log(dipendenteTrovato);
-
-                    employeeUpdateForm(dipendenteTrovato[0]);
-
-                    // 1. Aprire PopUp
-
-
-                    // 2. Caricare i dati del dipendente da aggiornare nel popup
-                    // 3. Gestire l'aggiornamento del dipendente nel popup
-                });
-            })
+        response.forEach(function(obj) {
+            dataBox.innerHTML += employeeCardTemplate(obj);
         });
+
+        // Prima seleziono tutte le card HTML appena renderizzate
+        // e dopo aggancio le azioni della card: elimina, aggiorna e contatta
+        const allCards = document.querySelectorAll(".employee-card");
+
+        // Loop di ogni card
+        allCards.forEach(card => {
+            const employeeId = Number( card.getAttribute("data-card-id") );
+
+            const deleteButton = card.querySelector(".employee-card__button--delete");
+            const updateButton = card.querySelector(".employee-card__button--update");
+            // const contactButton = card.querySelector("");
+
+            console.log(employeeId);
+            console.log(deleteButton);
+            console.log(updateButton);
+
+            // Gestire l'eliminazione
+            deleteButton.addEventListener("click", () => deleteEmployeeById(employeeId, deleteButton));
+
+            // Gestire l'aggiornamento dipendente
+            updateButton.addEventListener("click", () => updateEmployeeById(employeeId, updateButton, response));
+        })
+    }
+    ottieniDipendenti(); // Carico i dipendenti
 
     // 2 - Chiamata POST con fetch + form html -> creare dipendente
     const employeeForm = document.querySelector("#form-data-employee");
@@ -138,23 +93,84 @@ window.addEventListener("DOMContentLoaded", function() {
                 if (response.status != "ok") {
                     alert(response.message);
                     return;
-                } 
+                }
 
                 alert(response.message);
 
                 // Ricarico i dipendenti nell'HTML per aggiornare la lista
+                ottieniDipendenti();
+
+                employeeForm.reset();
             })
             .catch(response => alert("Si è verificato un errore generico. Riprova!"))
     });
 
     // 3 - Chiamata DELETE -> eliminare dipendente
-    function deleteEmployeeById(id) {
+    function deleteEmployeeById(id, deleteButton) {
+        // TODO: RIFARE MEGLIO - Evita il doppio click
+        deleteButton.setAttribute("disabled", true);
 
+        console.log("VUOI ELIMINARE IL DIPENDENTE:", id)
+
+        if (!confirm("Sei sicuro di voler eliminare questo dipendente?")) {
+            return;
+        }
+
+        fetch("http://localhost:8081/api/dipendenti/" + id, {
+            method: "DELETE"
+        })
+            .then(response => response.json())
+            .then(response => {
+                // Ricarica tutti i dipendenti
+                ottieniDipendenti();
+            })
     }
 
     // 4 - Chiamata PUT -> aggiornare dipendente
-    function updateEmployeeById(id) {
+    function updateEmployeeById(id, updateButton, response) {
+        console.log("Sto gestendo l'update del dipendente")
 
+        // RICERCA DIPENDENTE CON ID
+        const dipendenteTrovato = response.filter(d => d.id === Number(id));
+
+        console.log(dipendenteTrovato);
+
+        // 1. Aprire PopUp
+        employeeUpdateForm(dipendenteTrovato[0]);
+
+        const popupForm = document.querySelector(".popup #update-form-data-employee")
+
+        // 2. Effettuare HTTP PUT
+        popupForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            console.log("Stai inviando il popup");
+
+            const formData = {
+                nome: popupForm.querySelector('#nome').value,
+                cognome: popupForm.querySelector('#cognome').value,
+                email: popupForm.querySelector('#email').value
+            }
+
+            fetch("http://localhost:8081/api/dipendenti/" + id, {
+                method: 'PUT',
+                body: JSON.stringify(formData),
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+                .then(response => response.json())
+                .then(response => {
+                    alert("Utente aggiornato con successo")
+
+                    document.body.querySelector(".popup").remove();
+                    
+                    // Ricarica i dipendenti
+                    ottieniDipendenti();
+                })
+                .catch(error => {
+                    alert("Si è verificato un errore durante l'aggiornamento del dipendente")
+                })
+        });
     }
 
     // 5 - Chiamata GET - Cerca dipendente
