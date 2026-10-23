@@ -61,7 +61,7 @@ function employeeUpdateForm() {
                 </div>
 
                 <div class="form-row">
-                    <input type="submit" value="Crea dipendente">
+                    <input type="submit" value="Aggiorna dipendente">
                 </div>
             </form>
         </div>

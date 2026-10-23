@@ -87,7 +87,7 @@ window.addEventListener("DOMContentLoaded", function() {
 
                     // 1. Aprire PopUp
                     employeeUpdateForm();
-                    
+
                     // 2. Caricare i dati del dipendente da aggiornare nel popup
                     // 3. Gestire l'aggiornamento del dipendente nel popup
                 });
