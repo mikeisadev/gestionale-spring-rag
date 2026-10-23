@@ -24,8 +24,8 @@ window.addEventListener("DOMContentLoaded", function() {
 
     // 1. Chiamata GET dipendenti
     async function ottieniDipendenti() {
-        let response = await fetch("http://localhost:8081/api/dipendenti")
-        response = await response.json();
+        const response = await fetch("http://localhost:8081/api/dipendenti")
+        const data = await response.json();
 
         const dataBox = document.querySelector(".data-box");
 
@@ -55,7 +55,7 @@ window.addEventListener("DOMContentLoaded", function() {
             deleteButton.addEventListener("click", () => deleteEmployeeById(employeeId, deleteButton));
 
             // Gestire l'aggiornamento dipendente
-            updateButton.addEventListener("click", () => updateEmployeeById(employeeId, updateButton, response));
+            updateButton.addEventListener("click", () => updateEmployeeById(employeeId, updateButton, data));
         })
     }
     ottieniDipendenti(); // Carico i dipendenti
