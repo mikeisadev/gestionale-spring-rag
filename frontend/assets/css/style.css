@@ -10,22 +10,6 @@ h1 {
     font-size: 60px;
 }
 
-button {
-    font-size: 18px;
-    background-color: cadetblue;
-    color: white;
-    padding: 20px;
-    border-color: cadetblue;
-    border-style: solid;
-    border-radius: 10px;
-    transition: 2s ease all;
-    opacity: 1.0;
-}
-
-button:hover {
-    opacity: 0.2;
-}
-
 p {
     font-style: italic;
 }

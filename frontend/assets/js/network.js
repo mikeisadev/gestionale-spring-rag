@@ -85,8 +85,19 @@ window.addEventListener("DOMContentLoaded", function() {
                 updateButton.addEventListener("click", function() {
                     console.log("Sto gestendo l'update del dipendente")
 
+                    // PRENDIAMO L'ID DIPENDENTE
+                    const employeeId = updateButton.getAttribute("data-employee-id");
+                    console.log("[POST PAUSA]", response, employeeId);
+
+                    // RICERCA DIPENDENTE CON ID
+                    const dipendenteTrovato = response.filter(d => d.id === Number(employeeId));
+
+                    console.log(dipendenteTrovato);
+
+                    employeeUpdateForm(dipendenteTrovato[0]);
+
                     // 1. Aprire PopUp
-                    employeeUpdateForm();
+
 
                     // 2. Caricare i dati del dipendente da aggiornare nel popup
                     // 3. Gestire l'aggiornamento del dipendente nel popup
