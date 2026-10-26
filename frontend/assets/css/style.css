@@ -41,3 +41,7 @@ p {
     border-radius: 12px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+
+button[disabled], input[type="submit"][disabled] {
+    opacity: 0.4;
+}

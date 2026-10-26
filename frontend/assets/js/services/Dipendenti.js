@@ -5,6 +5,7 @@ class Dipendenti {
 
     // Elementi HTML che mi serviranno dopo
     employeeForm = document.querySelector("#form-data-employee");
+    employeeFormSubmit = this.employeeForm.querySelector("input[type='submit']");
 
     /**
      * Il costruttore è un metodo che si avvia
@@ -69,6 +70,13 @@ class Dipendenti {
                 // Prevengo il reload dela pagina quando invio il form
                 event.preventDefault(); 
 
+                if (this.employeeFormSubmit.disabled) {
+                    return;
+                }
+
+                // Disabilitare il pulsante di invio
+                this.employeeFormSubmit.disabled = true;
+
                 // Estraggo i dati dal form
                 const nomeDipendente = document.querySelector("#form-data-employee #nome").value;
                 const cognomeDipendente = document.querySelector("#form-data-employee #cognome").value;
@@ -88,6 +96,8 @@ class Dipendenti {
                     }
                 });
                 const response = await request.json();
+
+                this.employeeFormSubmit.disabled = false;
 
                 if (response.status != "ok") {
                     alert(response.message);
@@ -110,7 +120,11 @@ class Dipendenti {
     async deleteEmployeeById(id, deleteButton) {
         try {
             // TODO: RIFARE MEGLIO - Evita il doppio click
-            deleteButton.setAttribute("disabled", true);
+            if (deleteButton.disabled) {
+                return;
+            }
+            
+            deleteButton.disabled = true;
 
             console.log("VUOI ELIMINARE IL DIPENDENTE:", id)
 
@@ -122,6 +136,8 @@ class Dipendenti {
                 method: "DELETE"
             });
             const response = await request.json();
+
+            deleteButton.disabled = false;
 
             // Ricarica tutti i dipendenti
             this.ottieniDipendenti();
