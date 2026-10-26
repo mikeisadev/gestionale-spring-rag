@@ -23,7 +23,7 @@ class Dipendenti {
     async ottieniDipendenti() {
         try {
             const request = await fetch(this.API_URL);
-            const response = await response.json();
+            const response = await request.json();
 
             const dataBox = document.querySelector(".data-box");
 
