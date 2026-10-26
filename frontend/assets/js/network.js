@@ -19,7 +19,7 @@ console.log("[FILE JS CHIAMATE DI RETE] Chiamate di rete");
  * - Nuova architettura per il codice frontend
  */
 
-window.addEventListener("DOMContentLoaded", function() {
+window.addEventListener("DOMContentLoaded", () => {
     console.log("Si è caricata tutta la pagina HTML");
 
     /**
@@ -33,10 +33,13 @@ window.addEventListener("DOMContentLoaded", function() {
      * INDICAZIONE: dopo aver risolto i bug nella classe Dipendenti,
      * usa la stessa logica nelle altre classi.
      */
-
-    new Dipendenti();
-    // new Contratti();
-    // new DatoriLavoro();
+    try {
+        new Dipendenti();
+        // new Contratti();
+        // new DatoriLavoro();
+    } catch(e) {
+        throw new Error(e);
+    }
 });
 
 window.addEventListener("scroll", function(event) {

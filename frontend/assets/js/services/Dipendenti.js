@@ -21,47 +21,51 @@ class Dipendenti {
 
     // 1. Chiamata GET dipendenti
     async ottieniDipendenti() {
-        const response = await fetch(this.API_URL)
-        const data = await response.json();
+        try {
+            const request = await fetch(this.API_URL);
+            const response = await response.json();
 
-        const dataBox = document.querySelector(".data-box");
+            const dataBox = document.querySelector(".data-box");
 
-        dataBox.innerHTML = ""; // Ricorda! Dati sempre freschi!
+            dataBox.innerHTML = ""; // Ricorda! Dati sempre freschi!
 
-        console.log(response, data);
+            console.log(response, response);
 
-        data.forEach(function(obj) {
-            dataBox.innerHTML += employeeCardTemplate(obj);
-        });
+            response.forEach(function(obj) {
+                dataBox.innerHTML += employeeCardTemplate(obj);
+            });
 
-        // Prima seleziono tutte le card HTML appena renderizzate
-        // e dopo aggancio le azioni della card: elimina, aggiorna e contatta
-        const allCards = document.querySelectorAll(".employee-card");
+            // Prima seleziono tutte le card HTML appena renderizzate
+            // e dopo aggancio le azioni della card: elimina, aggiorna e contatta
+            const allCards = document.querySelectorAll(".employee-card");
 
-        // Loop di ogni card
-        allCards.forEach(card => {
-            const employeeId = Number( card.getAttribute("data-card-id") );
+            // Loop di ogni card
+            allCards.forEach(card => {
+                const employeeId = Number( card.getAttribute("data-card-id") );
 
-            const deleteButton = card.querySelector(".employee-card__button--delete");
-            const updateButton = card.querySelector(".employee-card__button--update");
-            // const contactButton = card.querySelector("");
+                const deleteButton = card.querySelector(".employee-card__button--delete");
+                const updateButton = card.querySelector(".employee-card__button--update");
+                // const contactButton = card.querySelector("");
 
-            console.log(employeeId);
-            console.log(deleteButton);
-            console.log(updateButton);
+                console.log(employeeId);
+                console.log(deleteButton);
+                console.log(updateButton);
 
-            // Gestire l'eliminazione
-            deleteButton.addEventListener("click", () => this.deleteEmployeeById(employeeId, deleteButton));
+                // Gestire l'eliminazione
+                deleteButton.addEventListener("click", () => this.deleteEmployeeById(employeeId, deleteButton));
 
-            // Gestire l'aggiornamento dipendente
-            updateButton.addEventListener("click", () => this.updateEmployeeById(employeeId, updateButton, data));
-        })
+                // Gestire l'aggiornamento dipendente
+                updateButton.addEventListener("click", () => this.updateEmployeeById(employeeId, updateButton, response));
+            });
+        } catch (e) {
+            throw new Error(e);
+        }
     }
     
     // 2 - Chiamata POST con fetch + form html -> creare dipendente
     gestisciFormDipendente() {
         try {
-            this.employeeForm.addEventListener("submit", (event) => {
+            this.employeeForm.addEventListener("submit", async (event) => {
                 // Prevengo il reload dela pagina quando invio il form
                 event.preventDefault(); 
 
@@ -72,7 +76,7 @@ class Dipendenti {
 
                 console.log(nomeDipendente, cognomeDipendente, emailDipendente);
 
-                fetch("http://localhost:8081/api/dipendenti", {
+                const request = await fetch("http://localhost:8081/api/dipendenti", {
                     method: "POST",
                     body: JSON.stringify({
                         nome: nomeDipendente,
@@ -82,94 +86,95 @@ class Dipendenti {
                     headers: {
                         "Content-Type": "application/json"
                     }
-                })
-                    .then(response => response.json())
-                    .then(response => {
-                        if (response.status != "ok") {
-                            alert(response.message);
-                            return;
-                        }
+                });
+                const response = await request.json();
 
-                        alert(response.message);
+                if (response.status != "ok") {
+                    alert(response.message);
+                    return;
+                }
 
-                        // Ricarico i dipendenti nell'HTML per aggiornare la lista
-                        this.ottieniDipendenti();
+                alert(response.message);
 
-                        this.employeeForm.reset();
-                    })
-                    // .catch(response => alert("Si è verificato un errore generico. Riprova!"))
+                // Ricarico i dipendenti nell'HTML per aggiornare la lista
+                this.ottieniDipendenti();
+
+                this.employeeForm.reset(); 
             });
-        } catch (error) {
-            throw new Error(error);
+        } catch (e) {
+            throw new Error(e);
         }
     }
     
     // 3 - Chiamata DELETE -> eliminare dipendente
-    deleteEmployeeById(id, deleteButton) {
-        // TODO: RIFARE MEGLIO - Evita il doppio click
-        deleteButton.setAttribute("disabled", true);
+    async deleteEmployeeById(id, deleteButton) {
+        try {
+            // TODO: RIFARE MEGLIO - Evita il doppio click
+            deleteButton.setAttribute("disabled", true);
 
-        console.log("VUOI ELIMINARE IL DIPENDENTE:", id)
+            console.log("VUOI ELIMINARE IL DIPENDENTE:", id)
 
-        if (!confirm("Sei sicuro di voler eliminare questo dipendente?")) {
-            return;
+            if (!confirm("Sei sicuro di voler eliminare questo dipendente?")) {
+                return;
+            }
+
+            const request = await fetch(this.API_URL + "/" + id, {
+                method: "DELETE"
+            });
+            const response = await response.json();
+
+            // Ricarica tutti i dipendenti
+            this.ottieniDipendenti();
+        } catch (e) {
+            throw new Error(e);
         }
-
-        fetch(this.API_URL + "/" + id, {
-            method: "DELETE"
-        })
-            .then(response => response.json())
-            .then(response => {
-                // Ricarica tutti i dipendenti
-                this.ottieniDipendenti();
-            })
     }
 
     // 4 - Chiamata PUT -> aggiornare dipendente
     updateEmployeeById(id, updateButton, response) {
-        console.log("Sto gestendo l'update del dipendente")
+        try {
+            console.log("Sto gestendo l'update del dipendente")
 
-        // RICERCA DIPENDENTE CON ID
-        const dipendenteTrovato = response.filter(d => d.id === Number(id));
+            // RICERCA DIPENDENTE CON ID
+            const dipendenteTrovato = response.filter(d => d.id === Number(id));
 
-        console.log(dipendenteTrovato);
+            console.log(dipendenteTrovato);
 
-        // 1. Aprire PopUp
-        employeeUpdateForm(dipendenteTrovato[0]);
+            // 1. Aprire PopUp
+            employeeUpdateForm(dipendenteTrovato[0]);
 
-        const popupForm = document.querySelector(".popup #update-form-data-employee")
+            const popupForm = document.querySelector(".popup #update-form-data-employee")
 
-        // 2. Effettuare HTTP PUT
-        popupForm.addEventListener('submit', (event) => {
-            event.preventDefault();
-            console.log("Stai inviando il popup");
+            // 2. Effettuare HTTP PUT
+            popupForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                console.log("Stai inviando il popup");
 
-            const formData = {
-                nome: popupForm.querySelector('#nome').value,
-                cognome: popupForm.querySelector('#cognome').value,
-                email: popupForm.querySelector('#email').value
-            }
-
-            fetch(this.API_URL + "/" +  id, {
-                method: 'PUT',
-                body: JSON.stringify(formData),
-                headers: {
-                    "Content-Type": "application/json"
+                const formData = {
+                    nome: popupForm.querySelector('#nome').value,
+                    cognome: popupForm.querySelector('#cognome').value,
+                    email: popupForm.querySelector('#email').value
                 }
-            })
-                .then(response => response.json())
-                .then(response => {
-                    alert("Utente aggiornato con successo")
 
-                    document.body.querySelector(".popup").remove();
-                    
-                    // Ricarica i dipendenti
-                    this.ottieniDipendenti();
-                })
-                .catch(error => {
-                    alert("Si è verificato un errore durante l'aggiornamento del dipendente")
-                })
-        });
+                const request = await fetch(this.API_URL + "/" +  id, {
+                    method: 'PUT',
+                    body: JSON.stringify(formData),
+                    headers: {
+                        "Content-Type": "application/json"
+                    }
+                });
+                const response = await response.json();
+                
+                alert("Utente aggiornato con successo")
+
+                document.body.querySelector(".popup").remove();
+                
+                // Ricarica i dipendenti
+                this.ottieniDipendenti();
+            });
+        } catch (e) {
+            throw new Error(e);
+        }
     }
 
     // 5 - Chiamata GET - Cerca dipendente
