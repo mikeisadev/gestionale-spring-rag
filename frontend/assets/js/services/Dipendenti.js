@@ -121,7 +121,7 @@ class Dipendenti {
             const request = await fetch(this.API_URL + "/" + id, {
                 method: "DELETE"
             });
-            const response = await response.json();
+            const response = await request.json();
 
             // Ricarica tutti i dipendenti
             this.ottieniDipendenti();
@@ -163,7 +163,7 @@ class Dipendenti {
                         "Content-Type": "application/json"
                     }
                 });
-                const response = await response.json();
+                const response = await request.json();
                 
                 alert("Utente aggiornato con successo")
 
