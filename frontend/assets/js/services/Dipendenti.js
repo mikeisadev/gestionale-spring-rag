@@ -51,53 +51,57 @@ class Dipendenti {
             console.log(updateButton);
 
             // Gestire l'eliminazione
-            deleteButton.addEventListener("click", () => deleteEmployeeById(employeeId, deleteButton));
+            deleteButton.addEventListener("click", () => this.deleteEmployeeById(employeeId, deleteButton));
 
             // Gestire l'aggiornamento dipendente
-            updateButton.addEventListener("click", () => updateEmployeeById(employeeId, updateButton, data));
+            updateButton.addEventListener("click", () => this.updateEmployeeById(employeeId, updateButton, data));
         })
     }
     
     // 2 - Chiamata POST con fetch + form html -> creare dipendente
     gestisciFormDipendente() {
-        this.employeeForm.addEventListener("submit", function(event) {
-            // Prevengo il reload dela pagina quando invio il form
-            event.preventDefault(); 
+        try {
+            this.employeeForm.addEventListener("submit", (event) => {
+                // Prevengo il reload dela pagina quando invio il form
+                event.preventDefault(); 
 
-            // Estraggo i dati dal form
-            const nomeDipendente = document.querySelector("#form-data-employee #nome").value;
-            const cognomeDipendente = document.querySelector("#form-data-employee #cognome").value;
-            const emailDipendente = document.querySelector("#form-data-employee #email").value;
+                // Estraggo i dati dal form
+                const nomeDipendente = document.querySelector("#form-data-employee #nome").value;
+                const cognomeDipendente = document.querySelector("#form-data-employee #cognome").value;
+                const emailDipendente = document.querySelector("#form-data-employee #email").value;
 
-            console.log(nomeDipendente, cognomeDipendente, emailDipendente);
+                console.log(nomeDipendente, cognomeDipendente, emailDipendente);
 
-            fetch("http://localhost:8081/api/dipendenti", {
-                method: "POST",
-                body: JSON.stringify({
-                    nome: nomeDipendente,
-                    cognome: cognomeDipendente,
-                    email: emailDipendente,
-                }),
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            })
-                .then(response => response.json())
-                .then(response => {
-                    if (response.status != "ok") {
-                        alert(response.message);
-                        return;
+                fetch("http://localhost:8081/api/dipendenti", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        nome: nomeDipendente,
+                        cognome: cognomeDipendente,
+                        email: emailDipendente,
+                    }),
+                    headers: {
+                        "Content-Type": "application/json"
                     }
-
-                    alert(response.message);
-
-                    // Ricarico i dipendenti nell'HTML per aggiornare la lista
-                    ottieniDipendenti();
-
-                    employeeForm.reset();
                 })
-                .catch(response => alert("Si è verificato un errore generico. Riprova!"))
+                    .then(response => response.json())
+                    .then(response => {
+                        if (response.status != "ok") {
+                            alert(response.message);
+                            return;
+                        }
+
+                        alert(response.message);
+
+                        // Ricarico i dipendenti nell'HTML per aggiornare la lista
+                        this.ottieniDipendenti();
+
+                        this.employeeForm.reset();
+                    })
+                    // .catch(response => alert("Si è verificato un errore generico. Riprova!"))
             });
+        } catch (error) {
+            throw new Error(error);
+        }
     }
     
     // 3 - Chiamata DELETE -> eliminare dipendente
@@ -117,7 +121,7 @@ class Dipendenti {
             .then(response => response.json())
             .then(response => {
                 // Ricarica tutti i dipendenti
-                ottieniDipendenti();
+                this.ottieniDipendenti();
             })
     }
 
@@ -136,7 +140,7 @@ class Dipendenti {
         const popupForm = document.querySelector(".popup #update-form-data-employee")
 
         // 2. Effettuare HTTP PUT
-        popupForm.addEventListener('submit', function(event) {
+        popupForm.addEventListener('submit', (event) => {
             event.preventDefault();
             console.log("Stai inviando il popup");
 
@@ -160,7 +164,7 @@ class Dipendenti {
                     document.body.querySelector(".popup").remove();
                     
                     // Ricarica i dipendenti
-                    ottieniDipendenti();
+                    this.ottieniDipendenti();
                 })
                 .catch(error => {
                     alert("Si è verificato un errore durante l'aggiornamento del dipendente")
