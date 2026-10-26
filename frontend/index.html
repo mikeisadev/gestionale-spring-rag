@@ -1,71 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corso Spring Boot</title>
-
-    <!-- Includo qui il CSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/card.css">
-    <link rel="stylesheet" href="assets/css/form.css">
-    <link rel="stylesheet" href="assets/css/popup.css">
-
-    <!-- Includo qui Javascript -->
-    <script src="assets/js/utils.js"></script>
-    <script src="assets/js/html.js"></script>
-    <script src="assets/js/script.js"></script>
-    <script src="assets/js/network.js"></script>
-
-    <script src="assets/js/services/Dipendenti.js"></script>
-</head>
-
-<body>
-    <h1 style="text-align: center;">Gestionale</h1>
-
-    <div class="form-container">
-        <form id="form-data-employee" class="employee-form">
-            <div class="form-row">
-                <label>Nome <span class="required">*</span></label>
-                <input type="text" name="nome" id="nome" placeholder="Inserisci il nome del dipendente...">
-            </div>
-
-            <div class="form-row">
-                <label>Cognome <span class="required">*</span></label>
-                <input type="text" name="cognome" id="cognome" placeholder="Inserisci il cognome del dipendente...">
-            </div>
-
-            <div class="form-row">
-                <label>Email <span class="required">*</span></label>
-                <input type="email" name="email" id="email" placeholder="Inserisci l'email del dipendente...">
-            </div>
-
-            <div class="form-row">
-                <input type="submit" value="Crea dipendente">
-            </div>
-
-            <div class="form-row">
-                <p>I campi contrassegnati con "*" sono obbligatori</p>
-            </div>
-        </form>
-    </div>
-
-    <div class="main-box">
-        <div class="search-form">
-            <h2>Gestione dipendenti</h2>
-
-            <form>
-                <input type="text" placeholder="Inserisci il nome di un dipendente..." />
-                <input type="submit" value="Invia" />
-            </form>
-        </div>
-
-        <!-- Genera qui dentro la lista dei dipendenti -->
-        <div class="data-box">
-
-        </div>
-    </div>
-</body>
-
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
