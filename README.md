@@ -11,6 +11,13 @@ Più avanti nel corso, il gestionale includerà lo sviluppo di un sistema RAG co
 - **Spring Boot v4.1.1 (*framework*)**
 - **React (*ancora da implementare*)**
 
+# Nota per avviare il frontend
+Ricorda che se chiudi VS Code il dev server di Vite si interrompe e non potrai più vedere i cambiamenti che farai nel codice. 
+
+Per riavviare esegui questi comandi:
+1) `cd frontend` per entrare nella cartella frontend dove esiste vite
+2) `npm run dev` per riavviare vite
+
 ## Ripasso protocollo HTTP, metodi e mapping Spring Boot
 Stiamo costruendo il controller per sbloccare le operazioni CRUD
 

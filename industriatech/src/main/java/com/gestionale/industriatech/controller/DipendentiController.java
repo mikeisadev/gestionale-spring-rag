@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://127.0.0.1:5500")
+@CrossOrigin(origins = "http://localhost:5173")
 public class DipendentiController {
 
     private static final Logger log = LoggerFactory.getLogger(DipendentiController.class);
