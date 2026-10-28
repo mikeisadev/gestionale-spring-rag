@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
-import './App.css'
 import axios from "axios";
 
 function App() {
   //let dipendenti = null;
   const [dipendenti, aggiornaDipendenti] = useState(null);
-  const [nomi, impostaNomi] = useState(["Michele Mincone", "Dario Amodei", "Qualsiasi Nome", "Ciao Hello"]);
-
+  
   useEffect(() => {
 
     setTimeout(
@@ -21,33 +19,17 @@ function App() {
 
   }, []);
 
-  function ritornaJSX(nome, cognome) {
-    return (
-      <p>Ciao, {nome} {cognome}!</p>
-    )
-  }
-
   return (
     <>
       <div>
-        {ritornaJSX("Michele", "Mincone")}
-
-        {
-          nomi.map(n => ritornaJSX(n))
-        }
-
-        <h1>Gestionale</h1>
+        <h1 className='titolo'>Gestionale</h1>
 
         <h2>Dipendenti</h2>
 
         <div>
           {
             dipendenti ?
-            dipendenti.map(dipendente => {
-              return (
-                <div>{dipendente.nome} {dipendente.cognome}</div>
-              )
-            })
+            dipendenti.map(dipendente => <EmployeeCard dipendente={dipendente} />)
             :
             <p>Stiamo caricando i dipendenti</p>
           }
@@ -58,6 +40,12 @@ function App() {
         <h1>Gestionale</h1>
       </div>
     </>
+  )
+}
+
+function EmployeeCard(dipendente) {
+  return (
+    <div>{dipendente.nome} {dipendente.cognome}</div>
   )
 }
 
