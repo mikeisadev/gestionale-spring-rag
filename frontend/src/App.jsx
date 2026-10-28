@@ -5,18 +5,37 @@ import axios from "axios";
 function App() {
   //let dipendenti = null;
   const [dipendenti, aggiornaDipendenti] = useState(null);
+  const [nomi, impostaNomi] = useState(["Michele Mincone", "Dario Amodei", "Qualsiasi Nome", "Ciao Hello"]);
 
   useEffect(() => {
-    axios.get("http://localhost:8081/api/dipendenti")
-      .then(response => {
-        aggiornaDipendenti(response.data)
-        console.log(response.data)
-      })
+
+    setTimeout(
+      () => {
+        axios.get("http://localhost:8081/api/dipendenti")
+          .then(response => {
+            aggiornaDipendenti(response.data)
+            console.log(response.data)
+          })
+      }, 5000
+    );
+
   }, []);
+
+  function ritornaJSX(nome, cognome) {
+    return (
+      <p>Ciao, {nome} {cognome}!</p>
+    )
+  }
 
   return (
     <>
       <div>
+        {ritornaJSX("Michele", "Mincone")}
+
+        {
+          nomi.map(n => ritornaJSX(n))
+        }
+
         <h1>Gestionale</h1>
 
         <h2>Dipendenti</h2>
@@ -24,11 +43,13 @@ function App() {
         <div>
           {
             dipendenti ?
-            <p>Stiamo caricando i dipendenti</p>
+            dipendenti.map(dipendente => {
+              return (
+                <div>{dipendente.nome} {dipendente.cognome}</div>
+              )
+            })
             :
-            dipendenti?.map(dipendente => (
-              <div>{dipendente.nome}</div>
-            ))
+            <p>Stiamo caricando i dipendenti</p>
           }
         </div>
       </div>
