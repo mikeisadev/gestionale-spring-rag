@@ -1,11 +1,6 @@
 /* qua configuriamo tailwind */
 @import "tailwindcss";
 
-:root {
-  --red-main: #e60f24;
-  --green-main: rgb(69, 154, 69);
-}
-
-.titolo {
-  @apply text-3xl text-[var(--red-main)]/[0.5] font-bold underline;
+.heading {
+  @apply text-[40px] text-[#c84a9c] underline font-bold;
 }
