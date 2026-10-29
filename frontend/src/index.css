@@ -1,5 +1,6 @@
-/* qua configuriamo tailwind */
+/* Import TailwindCSS + Bootstrap Icons */
 @import "tailwindcss";
+@import "bootstrap-icons/font/bootstrap-icons";
 
 .heading {
   @apply text-[40px] text-[#c84a9c] underline font-bold;
