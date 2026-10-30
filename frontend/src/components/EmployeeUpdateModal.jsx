@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 
 function EmployeeUpdateModal({ dipendente, onClose, onSubmit }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [form, setForm] = useState({
     nome: dipendente?.nome ?? "",
     cognome: dipendente?.cognome ?? "",
@@ -22,9 +24,21 @@ function EmployeeUpdateModal({ dipendente, onClose, onSubmit }) {
     });
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    onSubmit?.({ ...dipendente, ...form });
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      await onSubmit?.({ ...dipendente, ...form });
+    } catch (error) {
+      setSubmitError(
+        error.response?.data?.message ??
+        "Impossibile aggiornare il dipendente. Riprova."
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -66,6 +80,12 @@ function EmployeeUpdateModal({ dipendente, onClose, onSubmit }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5 p-6">
+          {submitError && (
+            <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+              {submitError}
+            </p>
+          )}
+
           <div>
             <label
               htmlFor="nome"
@@ -78,7 +98,10 @@ function EmployeeUpdateModal({ dipendente, onClose, onSubmit }) {
               name="nome"
               type="text"
               value={form.nome}
-              onChange={handleChange}
+              onChange={(e) => {
+                setSubmitError("");
+                handleChange(e);
+              }}
               placeholder="Inserisci il nome"
               required
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
@@ -97,7 +120,10 @@ function EmployeeUpdateModal({ dipendente, onClose, onSubmit }) {
               name="cognome"
               type="text"
               value={form.cognome}
-              onChange={handleChange}
+              onChange={(e) => {
+                setSubmitError("");
+                handleChange(e);
+              }}
               placeholder="Inserisci il cognome"
               required
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
@@ -116,7 +142,10 @@ function EmployeeUpdateModal({ dipendente, onClose, onSubmit }) {
               name="email"
               type="email"
               value={form.email}
-              onChange={handleChange}
+              onChange={(e) => {
+                setSubmitError("");
+                handleChange(e);
+              }}
               placeholder="nome@esempio.it"
               required
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
@@ -128,6 +157,7 @@ function EmployeeUpdateModal({ dipendente, onClose, onSubmit }) {
             <button
               type="button"
               onClick={onClose}
+              disabled={isSubmitting}
               className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
             >
               Annulla
@@ -135,10 +165,11 @@ function EmployeeUpdateModal({ dipendente, onClose, onSubmit }) {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200"
             >
               <i className="bi bi-check2-circle" aria-hidden="true" />
-              Aggiorna dipendente
+              {isSubmitting ? "Aggiornamento..." : "Aggiorna dipendente"}
             </button>
           </div>
         </form>
