@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.gestionale.industriatech.dto.ChatRequest;
+import com.gestionale.industriatech.dto.ChatResponse;
+import com.gestionale.industriatech.service.ChatService;
+
 @RestController
 @RequestMapping("/api/chat")
 @CrossOrigin(origins = "http://localhost:5173")
@@ -33,8 +37,4 @@ public class ChatBotController {
             "reply", "Hai scritto: " + request.message().trim()
         ));
     }
-
-    public record ChatRequest(String message, List<ChatMessage> history) {}
-
-    public record ChatMessage(String role, String content) {}
 }
