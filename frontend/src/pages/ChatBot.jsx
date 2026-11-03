@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import Markdown from 'react-markdown'
+
 
 const CHAT_API_URL = 'http://localhost:8081/api/chat';
 
@@ -34,7 +36,7 @@ function ChatBot() {
         message,
         history,
       });
-      const reply = response.data?.reply;
+      const reply = response.data?.response;
 
       if (typeof reply !== 'string' || !reply.trim()) {
         throw new Error('La risposta del backend non contiene il campo "reply".');
@@ -132,7 +134,7 @@ function ChatBot() {
                         : 'rounded-tl-md bg-slate-100 text-slate-800'
                     }`}
                   >
-                    {message.content}
+                    <Markdown>{message.content}</Markdown>
                   </div>
                 </article>
               );
