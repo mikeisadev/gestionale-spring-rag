@@ -20,6 +20,12 @@ import com.gestionale.industriatech.service.ChatService;
 @CrossOrigin(origins = "http://localhost:5173")
 public class ChatBotController {
 
+    ChatService chatService;
+
+    public ChatBotController(ChatService chatService) {
+        this.chatService = chatService;
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, String>> rispondiChatBot(
         @RequestBody ChatRequest request
@@ -31,10 +37,13 @@ public class ChatBotController {
         }
 
         // Qui dobbiamo richiamare tramite API un LLM e ritornare la risposta
-        
+        String llmResponse = chatService.sendMessage(request.message());
 
-        return ResponseEntity.ok(Map.of(
-            "reply", "Hai scritto: " + request.message().trim()
-        ));
+        return ResponseEntity.ok(
+            Map.of(
+                "request", "Il tuo prompt: " + request.message(),
+                "response", llmResponse
+            )
+        );
     }
 }

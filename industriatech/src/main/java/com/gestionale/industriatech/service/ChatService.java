@@ -14,6 +14,7 @@ public class ChatService {
 
     public String sendMessage(String message) {
 
+        // Questa stringa ritorna la risposta dell'LLM che ho collegato
         return chatClient.prompt()
                 .user(message)
                 .call()

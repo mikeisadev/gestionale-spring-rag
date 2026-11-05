@@ -1,0 +1,85 @@
+services:
+
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: chatbot-postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: chatbot
+      POSTGRES_USER: chatbot
+      POSTGRES_PASSWORD: chatbot123
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatbot -d chatbot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: chatbot-pgadmin
+
+    restart: unless-stopped
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+
+    ports:
+      - "5050:80"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ===== OLLAMA (modelli locali) =====
+  ollama:
+    image: ollama/ollama:latest
+    container_name: chatbot-ollama
+
+    restart: unless-stopped
+
+    environment:
+      OLLAMA_KEEP_ALIVE: 24h
+
+    ports:
+      - "11434:11434"
+
+    volumes:
+      - ollama_data:/root/.ollama
+
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Scarica il modello di embedding bge-m3 al primo avvio (poi termina).
+  # I modelli restano salvati nel volume ollama_data.
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: chatbot-ollama-init
+
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+
+    entrypoint: ["ollama", "pull", "bge-m3"]
+
+    restart: "no"
+
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  ollama_data:
