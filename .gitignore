@@ -1,0 +1,2 @@
+# PDF caricati dal frontend per il sistema RAG (dati locali, non vanno su git)
+**/documents/pdf/*.pdf

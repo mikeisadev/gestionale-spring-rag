@@ -34,3 +34,49 @@ Stiamo costruendo il controller per sbloccare le operazioni CRUD
 |   Read  (LEGGI)     |    HTTP GET     |     @GetMapping       [OK]          |
 |   Update (AGGIORNA) |    HTTP PUT     |     @PutMapping       [OK]          |
 |   Delete (ELIMINA)  |    HTTP DELETE  |     @DeleteMapping    [OK]          |
+
+# Sistema RAG – Lezioni generate
+Le lezioni create a partire dai file della cartella `/prompt` si trovano nella cartella [`lezioni/`](lezioni/) e sono pronte da importare in Obsidian.
+
+- [`lezioni/log-operazioni.json`](lezioni/log-operazioni.json): registro di ogni operazione eseguita
+- [Lezione 1 – Caricare un PDF dal frontend](lezioni/01-upload-pdf-dal-frontend.md)
+- [Lezione 2 – Leggere un PDF e dividerlo in chunk](lezioni/02-lettura-e-chunking-pdf.md)
+- [Lezione 3 – Embedding, ricerca semantica e chat RAG](lezioni/03-embedding-e-ricerca-semantica.md)
+- [Lezione 3.1 – Indicizzazione asincrona](lezioni/03b-indicizzazione-asincrona.md)
+
+## Upload dei PDF (lezione 1)
+| Cosa | Dove |
+|---|---|
+| Pagina React | `http://localhost:5173/upload-rag` (voce di menu "Upload file per sistema RAG") |
+| Endpoint | `POST http://localhost:8081/api/documents` (multipart, campo `file`) |
+| Cartella dei PDF | `documents/pdf/` (relativa alla cartella da cui avvii Spring Boot, esclusa da git) |
+| Dimensione massima | 100 MB |
+
+Prova rapida da terminale:
+
+```bash
+curl -F "file=@manuale.pdf" http://localhost:8081/api/documents
+```
+
+## Lettura e chunking dei PDF (lezione 2)
+Dopo l'upload, `PdfProcessingService` legge il PDF pagina per pagina (`PagePdfDocumentReader`) e lo divide in chunk da circa 500 token (`TokenTextSplitter`). Nella console di Spring Boot vengono stampati, in via temporanea, pagine, chunk e metadati.
+
+> **Nota**: con `withPagesPerDocument(1)` il numero di pagina si trova nel metadato `page_number` (non `start_page_number`).
+
+## Embedding, ricerca semantica e chat RAG (lezione 3)
+All'upload, ogni chunk viene trasformato in un vettore da **1024** valori (Ollama + `bge-m3`) e salvato in PostgreSQL/pgvector con `vectorStore.add(chunks)`. In chat, la domanda viene cercata per significato nei chunk e i 5 più pertinenti vengono passati all'LLM, che risponde in streaming (SSE) citando file e pagina.
+
+| Endpoint | Scopo |
+|---|---|
+| `POST /api/chat` | Chat RAG in streaming (`text/event-stream`) |
+| `POST /api/rag/search` | Test della sola ricerca semantica: `{"query": "...", "topK": 5}` |
+| `GET /api/documents/test-embedding` | **Temporaneo**: mostra un embedding di prova |
+| `GET /api/documents/jobs` | Stato di tutte le indicizzazioni (lezione 3.1) |
+| `GET /api/documents/jobs/{id}` | Stato di una singola indicizzazione |
+
+> **Attenzione**: se cambi modello di embedding, la colonna `vector_store.embedding` deve avere le stesse dimensioni del modello (es. `vector(1024)` per `bge-m3`). Spring AI non modifica una tabella già esistente.
+
+## Indicizzazione asincrona (lezione 3.1)
+L'upload (`POST /api/documents`) risponde subito con **202 Accepted** e un *job*; l'indicizzazione continua in background su un thread dedicato, un PDF alla volta. La pagina React interroga lo stato ogni 2 secondi e mostra fase, avanzamento e stima del tempo.
+
+> **Nota sulle prestazioni**: con Ollama in Docker su macOS gli embedding usano solo la CPU (circa 20 secondi per chunk). Un PDF da 25 pagine (41 chunk) richiede circa 15 minuti. Lo stato dei job è in memoria: si perde al riavvio del backend.

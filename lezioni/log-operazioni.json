@@ -1,0 +1,325 @@
+{
+  "progetto": "gestionale-spring-rag",
+  "descrizione": "Registro delle operazioni eseguite per ogni prompt della cartella /prompt",
+  "operazioni": [
+    {
+      "id": 1,
+      "data": "2026-11-05T15:30:00+01:00",
+      "prompt": "prompt/1-setup-upload-pdf.md",
+      "lezione": "lezioni/01-upload-pdf-dal-frontend.md",
+      "azione": "Creazione del DTO di risposta",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/DocumentUploadResponse.java"
+      ],
+      "esito": "ok",
+      "nota_didattica": "Un record Java è il modo più compatto per scrivere un DTO: Spring lo converte da solo in JSON."
+    },
+    {
+      "id": 2,
+      "data": "2026-11-05T15:32:00+01:00",
+      "prompt": "prompt/1-setup-upload-pdf.md",
+      "lezione": "lezioni/01-upload-pdf-dal-frontend.md",
+      "azione": "Creazione di un DocumentService provvisorio (stub)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentService.java"
+      ],
+      "esito": "ok",
+      "nota_didattica": "Il controller dipende da DocumentService, che la lezione definisce solo più avanti: uno stub permette di compilare oggi e di sostituirlo dopo."
+    },
+    {
+      "id": 3,
+      "data": "2026-11-05T15:34:00+01:00",
+      "prompt": "prompt/1-setup-upload-pdf.md",
+      "lezione": "lezioni/01-upload-pdf-dal-frontend.md",
+      "azione": "Creazione di DocumentController (POST /api/documents)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/DocumentController.java"
+      ],
+      "esito": "ok",
+      "adattamento": "Usato MultipartFile invece di FilePart: con webmvc e webflux entrambi nel pom, Spring Boot avvia l'app in modalità MVC, dove FilePart non è supportato.",
+      "nota_didattica": "Il file viene salvato con un nome UUID per evitare attacchi di path traversal; gli errori di validazione diventano un 400 con messaggio leggibile."
+    },
+    {
+      "id": 4,
+      "data": "2026-11-05T15:36:00+01:00",
+      "prompt": "prompt/1-setup-upload-pdf.md",
+      "lezione": "lezioni/01-upload-pdf-dal-frontend.md",
+      "azione": "Configurazione limite upload e .gitignore",
+      "file": [
+        "industriatech/src/main/resources/application.properties",
+        ".gitignore"
+      ],
+      "esito": "ok",
+      "nota_didattica": "In Spring MVC il limite predefinito per i file è 1MB: lo portiamo a 20MB. I PDF caricati non vanno su git."
+    },
+    {
+      "id": 5,
+      "data": "2026-11-05T15:40:00+01:00",
+      "prompt": "prompt/1-setup-upload-pdf.md",
+      "lezione": "lezioni/01-upload-pdf-dal-frontend.md",
+      "azione": "Creazione della pagina React 'Upload file per sistema RAG'",
+      "file": [
+        "frontend/src/pages/UploadRag.jsx",
+        "frontend/src/App.jsx"
+      ],
+      "esito": "ok",
+      "nota_didattica": "Con FormData il browser imposta da solo Content-Type e boundary. La pagina mostra il resoconto dell'upload (esercitazione della lezione)."
+    },
+    {
+      "id": 6,
+      "data": "2026-11-05T15:47:00+01:00",
+      "prompt": "prompt/1-setup-upload-pdf.md",
+      "lezione": "lezioni/01-upload-pdf-dal-frontend.md",
+      "azione": "Test end-to-end",
+      "file": [],
+      "esito": "ok",
+      "dettagli": {
+        "pdf_valido": "HTTP 200 + JSON di resoconto",
+        "file_non_pdf": "HTTP 400 {\"message\":\"Caricare un file PDF\"}",
+        "pdf_21MB": "HTTP 413",
+        "cors_preflight_5173": "Access-Control-Allow-Origin: http://localhost:5173",
+        "upload_da_browser": "Resoconto mostrato correttamente nella pagina"
+      },
+      "problema_rilevato": "La build Maven da terminale fallisce (problema preesistente): nel pom.xml Lombok ha scope 'annotationProcessor', che non è valido, quindi getter e setter di Dipendenti non vengono generati. In VS Code funziona perché l'IDE usa il proprio compilatore."
+    },
+    {
+      "id": 7,
+      "data": "2026-11-05T15:55:00+01:00",
+      "prompt": "richiesta diretta",
+      "lezione": "lezioni/01-upload-pdf-dal-frontend.md",
+      "azione": "Limite di upload portato a 100 MB",
+      "file": [
+        "industriatech/src/main/resources/application.properties",
+        "frontend/src/pages/UploadRag.jsx",
+        "README.md",
+        "lezioni/01-upload-pdf-dal-frontend.md"
+      ],
+      "esito": "ok",
+      "nota_didattica": "max-file-size e max-request-size vanno tenuti allineati: con 50MB/20MB conta il limite più basso (20MB). Anche la costante MAX_FILE_SIZE_MB del frontend va aggiornata."
+    },
+    {
+      "id": 8,
+      "data": "2026-11-05T15:58:00+01:00",
+      "prompt": "prompt/2-implementare-lettura-document.md",
+      "lezione": "lezioni/02-lettura-e-chunking-pdf.md",
+      "azione": "Verifica delle API di Spring AI 2.0.1 nel jar (PdfDocumentReaderConfig, PagePdfDocumentReader, TokenTextSplitter.builder)",
+      "file": [],
+      "esito": "ok",
+      "nota_didattica": "Prima di scrivere il codice conviene controllare che i metodi della documentazione esistano nella versione usata dal progetto (BOM 2.0.1, la lezione cita la 2.0.2)."
+    },
+    {
+      "id": 9,
+      "data": "2026-11-05T15:59:00+01:00",
+      "prompt": "prompt/2-implementare-lettura-document.md",
+      "lezione": "lezioni/02-lettura-e-chunking-pdf.md",
+      "azione": "Creazione di PdfProcessingService con extractText() e splitDocuments(), con le stampe temporanee in console",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/PdfProcessingService.java"
+      ],
+      "esito": "ok",
+      "adattamento": "Aggiunto un controllo che salta le pagine con testo vuoto.",
+      "nota_didattica": "PagePdfDocumentReader produce un Document per pagina; TokenTextSplitter divide in chunk da circa 500 token e i chunk ereditano i metadati della pagina."
+    },
+    {
+      "id": 10,
+      "data": "2026-11-05T16:00:00+01:00",
+      "prompt": "prompt/2-implementare-lettura-document.md",
+      "lezione": "lezioni/02-lettura-e-chunking-pdf.md",
+      "azione": "DocumentService collegato a estrazione e chunking (senza Vector Store)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentService.java"
+      ],
+      "esito": "ok",
+      "nota_didattica": "La risposta al frontend ora contiene i numeri reali di pagine e chunk; vectorStore.add() arriva nella lezione 3."
+    },
+    {
+      "id": 11,
+      "data": "2026-11-05T16:01:00+01:00",
+      "prompt": "prompt/2-implementare-lettura-document.md",
+      "lezione": "lezioni/02-lettura-e-chunking-pdf.md",
+      "azione": "Test end-to-end su un'istanza di prova (porta 8091)",
+      "file": [],
+      "esito": "ok",
+      "dettagli": {
+        "pdf_4_pagine_3_con_testo": "HTTP 200, pages=3, chunks=4 (pagina 1 divisa in 2 chunk)",
+        "pdf_solo_pagina_bianca": "HTTP 400 {\"message\":\"Il PDF non contiene testo leggibile\"}",
+        "pagina_bianca": "scartata già dal reader"
+      },
+      "problema_rilevato": "Con withPagesPerDocument(1) i metadati reali sono page_number e file_name, non start_page_number/end_page_number come indicato nella lezione. Nella lezione 3 buildContext() e le query SQL vanno adattati a page_number.",
+      "osservazione": "PDFBox mantiene gli spazi di layout (es. 'Introduzione   a  Spring  Boot'): consumano token, e si possono ripulire con ExtractedTextFormatter."
+    },
+    {
+      "id": 12,
+      "data": "2026-11-05T16:03:00+01:00",
+      "prompt": "prompt/3-generare-embedding.md",
+      "lezione": "lezioni/03-embedding-e-ricerca-semantica.md",
+      "azione": "Controllo dell'ambiente (modello bge-m3 in Ollama, tabella vector_store, chiave OpenAI)",
+      "file": [],
+      "esito": "ok",
+      "problema_rilevato": "La colonna embedding era vector(1536) (creata quando gli embedding erano di OpenAI), mentre bge-m3 produce 1024 valori. Spring AI usa CREATE TABLE IF NOT EXISTS e non aggiorna una tabella già esistente.",
+      "soluzione": "Tabella vuota (0 righe): ALTER TABLE vector_store ALTER COLUMN embedding TYPE vector(1024);",
+      "nota_didattica": "Quando si cambia modello di embedding bisogna controllare le dimensioni della colonna e rigenerare tutti i vettori."
+    },
+    {
+      "id": 13,
+      "data": "2026-11-05T16:05:00+01:00",
+      "prompt": "prompt/3-generare-embedding.md",
+      "lezione": "lezioni/03-embedding-e-ricerca-semantica.md",
+      "azione": "EmbeddingModel iniettato in PdfProcessingService + testEmbedding() ed endpoint temporaneo GET /api/documents/test-embedding",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/PdfProcessingService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/DocumentController.java"
+      ],
+      "esito": "ok",
+      "adattamento": "testEmbedding() restituisce anche una mappa (dimensioni, primi valori), così si può provare da browser o Postman.",
+      "nota_didattica": "embed(String) chiama il servizio esterno (Ollama), non è un calcolo locale di Java."
+    },
+    {
+      "id": 14,
+      "data": "2026-11-05T16:06:00+01:00",
+      "prompt": "prompt/3-generare-embedding.md",
+      "lezione": "lezioni/03-embedding-e-ricerca-semantica.md",
+      "azione": "DocumentService completo con vectorStore.add(chunks)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentService.java"
+      ],
+      "esito": "ok",
+      "nota_didattica": "Il VectorStore genera da solo gli embedding con l'EmbeddingModel e inserisce testo, metadati e vettore: non serve alcun ciclo manuale."
+    },
+    {
+      "id": 15,
+      "data": "2026-11-05T16:06:30+01:00",
+      "prompt": "prompt/3-generare-embedding.md",
+      "lezione": "lezioni/03-embedding-e-ricerca-semantica.md",
+      "azione": "Ricerca semantica: SemanticSearchRequest, SemanticSearchResult, RagService, RagController (POST /api/rag/search)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/SemanticSearchRequest.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/SemanticSearchResult.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/RagService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/RagController.java"
+      ],
+      "esito": "ok",
+      "adattamento": "buildContext() legge page_number (con riserva su start_page_number), perché è la chiave prodotta dal reader con withPagesPerDocument(1).",
+      "nota_didattica": "La domanda viene trasformata in vettore e confrontata con la distanza del coseno; topK è un massimo e la soglia 0.5 va calibrata."
+    },
+    {
+      "id": 16,
+      "data": "2026-11-05T16:07:00+01:00",
+      "prompt": "prompt/3-generare-embedding.md",
+      "lezione": "lezioni/03-embedding-e-ricerca-semantica.md",
+      "azione": "ChatService con streamMessage() e streamRagMessage(); ChatBotController in streaming SSE",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/ChatService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/ChatBotController.java",
+        "industriatech/src/main/resources/application.properties"
+      ],
+      "esito": "ok",
+      "adattamento": "Aggiunto spring.mvc.async.request-timeout=120s: il progetto gira in Spring MVC e uno stream lungo potrebbe scadere con il timeout predefinito.",
+      "nota_didattica": "System prompt = regole (compresa la difesa dalla prompt injection), user prompt = domanda + contesto."
+    },
+    {
+      "id": 17,
+      "data": "2026-11-05T16:12:00+01:00",
+      "prompt": "prompt/3-generare-embedding.md",
+      "lezione": "lezioni/03-embedding-e-ricerca-semantica.md",
+      "azione": "Frontend ChatBot.jsx: lettura dello streaming SSE con fetch + ReadableStream",
+      "file": [
+        "frontend/src/pages/ChatBot.jsx"
+      ],
+      "esito": "ok",
+      "problema_rilevato": "Spring scrive 'data:' senza spazio, quindi lo spazio iniziale di un token fa parte del testo. Un parser SSE standard (EventSource) lo toglierebbe e attaccherebbe le parole tra loro.",
+      "soluzione": "Parser su misura: si toglie solo il prefisso 'data:' (5 caratteri), senza trim, e più righe data: si uniscono con '\\n'.",
+      "nota_didattica": "Prima di scrivere un parser conviene guardare i byte reali della risposta (curl -N)."
+    },
+    {
+      "id": 18,
+      "data": "2026-11-05T16:20:00+01:00",
+      "prompt": "prompt/3-generare-embedding.md",
+      "lezione": "lezioni/03-embedding-e-ricerca-semantica.md",
+      "azione": "Test end-to-end della pipeline RAG",
+      "file": [],
+      "esito": "ok",
+      "dettagli": {
+        "test_embedding": "1024 dimensioni",
+        "upload": "pages=3, chunks=4, Documento indicizzato correttamente",
+        "pgvector": "4 righe, vector_dims=1024, page_number presente",
+        "rag_search": "chunk corretto trovato con parole diverse (similarità ~0.62), 1 solo risultato sopra la soglia",
+        "rag_search_query_vuota": "HTTP 400",
+        "chat_browser": "streaming corretto con citazioni (Fonte: manuale-spring.pdf, pag. 1 e pag. 3)",
+        "chat_fuori_tema": "'Non ho trovato informazioni sufficienti nei documenti...'",
+        "chat_messaggio_vuoto": "HTTP 400"
+      },
+      "problema_rilevato": "Primo token dopo 11-29 s. Misurando un componente alla volta: Ollama impiegava 16-20 s anche chiamato direttamente, perché il Mac aveva un carico medio di ~20 su 10 core. Con il carico sceso: embedding 0.07 s, ricerca 0.1 s, primo token < 1 s.",
+      "dati_di_test_lasciati": "4 righe di manuale-spring.pdf (PDF di prova) nella tabella vector_store"
+    },
+    {
+      "id": 19,
+      "data": "2026-11-05T16:50:00+01:00",
+      "prompt": "richiesta diretta (bug: timeout upload)",
+      "lezione": "lezioni/03b-indicizzazione-asincrona.md",
+      "azione": "Diagnosi del timeout sull'upload di un PDF da 25 pagine (AsyncRequestTimeoutException)",
+      "file": [],
+      "esito": "ok",
+      "dettagli": {
+        "timeout_attivo": "120s",
+        "pdf": "25 pagine, 41 MB, 41 chunk (lettura + chunking in 2 s)",
+        "ollama": "una chiamata /api/embed di 1m50s interrotta allo scadere del timeout",
+        "costo_per_chunk": "~23 s (Ollama in Docker su macOS: solo CPU, niente GPU Metal)",
+        "stima_totale": "~16 minuti"
+      },
+      "decisione_utente": "Ollama resta in Docker; indicizzazione resa asincrona.",
+      "nota_didattica": "Misurare un componente alla volta prima di cambiare il codice. Due problemi distinti: velocità (ambiente) e architettura (lavoro lungo dentro la richiesta HTTP)."
+    },
+    {
+      "id": 20,
+      "data": "2026-11-05T17:00:00+01:00",
+      "prompt": "richiesta diretta (bug: timeout upload)",
+      "lezione": "lezioni/03b-indicizzazione-asincrona.md",
+      "azione": "Indicizzazione asincrona: IndexingStatus, IndexingJob, IndexingJobResponse, DocumentIndexingService (thread dedicato), endpoint GET /api/documents/jobs e /jobs/{id}, upload con risposta 202",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/model/IndexingStatus.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/model/IndexingJob.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/IndexingJobResponse.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentIndexingService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/DocumentController.java",
+        "industriatech/src/main/resources/application.properties"
+      ],
+      "esito": "ok",
+      "adattamento": "Executor creato dentro il service (non come @Bean) per non impedire a Spring Boot di creare il suo applicationTaskExecutor. Salvataggio a blocchi (app.documents.indexing-batch-size=2) con rimozione dei chunk parziali in caso di errore.",
+      "nota_didattica": "202 Accepted = richiesta accettata, lavoro non ancora finito. synchronized e ConcurrentHashMap perché il job è condiviso tra thread."
+    },
+    {
+      "id": 21,
+      "data": "2026-11-05T17:02:00+01:00",
+      "prompt": "richiesta diretta (bug: timeout upload)",
+      "lezione": "lezioni/03b-indicizzazione-asincrona.md",
+      "azione": "Frontend UploadRag.jsx: polling ogni 2 s, barra di avanzamento, stima del tempo, ripristino dei job all'apertura della pagina",
+      "file": [
+        "frontend/src/pages/UploadRag.jsx"
+      ],
+      "esito": "ok",
+      "nota_didattica": "Il polling parte solo con job attivi e si ferma da solo; la cleanup function di useEffect evita intervalli fantasma. Date.now() spostato fuori dal render su segnalazione del linter (react/purity)."
+    },
+    {
+      "id": 22,
+      "data": "2026-11-05T17:12:00+01:00",
+      "prompt": "richiesta diretta (bug: timeout upload)",
+      "lezione": "lezioni/03b-indicizzazione-asincrona.md",
+      "azione": "Test dell'indicizzazione asincrona",
+      "file": [],
+      "esito": "ok",
+      "dettagli": {
+        "upload": "HTTP 202 in 0.03 s",
+        "avanzamento": "0/4 -> 2/4 -> 4/4, COMPLETATO",
+        "coda": "secondo PDF IN_CODA finché il primo non termina",
+        "pdf_senza_testo": "ERRORE 'Il PDF non contiene testo leggibile'",
+        "guasto_simulato": "proxy Python che restituisce 500 al secondo /api/embed: ERRORE, 'rimuovo 2 chunk parziali', 0 righe nel database",
+        "browser": "fase, barra, stima e durata visibili; polling fermo a fine lavoro"
+      },
+      "fix_durante_i_test": "IndexingJob.start() imposta la fase 'Avvio' (prima restava 'In coda' con stato IN_ELABORAZIONE).",
+      "pulizia": "Rimossi i PDF di prova (test-asincrono, test-pagina-bianca, demo-ui) da documents/pdf e le relative 8 righe da vector_store.",
+      "non_verificato": "Il PDF reale da 25 pagine non è stato reindicizzato (circa 16 minuti con Ollama in Docker): va ricaricato dalla pagina Upload."
+    }
+  ]
+}

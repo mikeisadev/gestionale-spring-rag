@@ -1,9 +1,61 @@
 import { useEffect, useRef, useState } from 'react';
-import axios from 'axios';
 import Markdown from 'react-markdown'
 
 
 const CHAT_API_URL = 'http://localhost:8081/api/chat';
+
+// Invia il messaggio e legge la risposta in streaming (Server-Sent Events).
+// Ogni evento SSE è separato da una riga vuota e contiene una o più righe "data:".
+// Esempio di ciò che arriva dal backend:
+//   data:La\n\n
+//   data: configur\n\n      <- lo spazio fa parte del token: NON va tolto
+//   data::\ndata:\n\n        <- più righe "data:" = il token contiene degli a capo
+async function streamChat(message, history, onToken) {
+  const response = await fetch(CHAT_API_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+    },
+    body: JSON.stringify({ message, history }),
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(
+      data?.message ||
+      (response.status === 400 ? 'Il messaggio non può essere vuoto.' : `Errore del server (${response.status}).`)
+    );
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    // I byte possono arrivare spezzati a metà evento: li accumuliamo nel buffer
+    buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, '\n');
+
+    let separatorIndex;
+    while ((separatorIndex = buffer.indexOf('\n\n')) !== -1) {
+      const rawEvent = buffer.slice(0, separatorIndex);
+      buffer = buffer.slice(separatorIndex + 2);
+
+      // Togliamo solo il prefisso "data:" (5 caratteri), senza trim:
+      // Spring non mette lo spazio dopo i due punti, quindi gli spazi sono del testo.
+      const token = rawEvent
+        .split('\n')
+        .filter(line => line.startsWith('data:'))
+        .map(line => line.slice(5))
+        .join('\n');
+
+      if (token) onToken(token);
+    }
+  }
+}
 
 function ChatBot() {
   const [messages, setMessages] = useState([]);
@@ -22,42 +74,42 @@ function ChatBot() {
 
     if (!message || isSending) return;
 
+    // Lo storico viene già inviato, ma il backend per ora non lo usa
     const history = messages.map(({ role, content }) => ({ role, content }));
+
+    // Aggiungiamo la domanda e una risposta vuota che riempiremo token per token
     setMessages(currentMessages => [
       ...currentMessages,
       { role: 'user', content: message },
+      { role: 'assistant', content: '' },
     ]);
     setMessageInput('');
     setRequestError('');
     setIsSending(true);
 
+    let receivedText = '';
+
     try {
-      const response = await axios.post(CHAT_API_URL, {
-        message,
-        history,
+      await streamChat(message, history, token => {
+        receivedText += token;
+        setMessages(currentMessages => {
+          const updated = [...currentMessages];
+          updated[updated.length - 1] = { role: 'assistant', content: receivedText };
+          return updated;
+        });
       });
-      const reply = response.data?.response;
 
-      if (typeof reply !== 'string' || !reply.trim()) {
-        throw new Error('La risposta del backend non contiene il campo "reply".');
+      if (!receivedText.trim()) {
+        throw new Error('Il backend non ha restituito alcuna risposta.');
       }
-
-      setMessages(currentMessages => [
-        ...currentMessages,
-        { role: 'assistant', content: reply.trim() },
-      ]);
     } catch (error) {
-      setMessages(currentMessages => {
-        const lastMessage = currentMessages[currentMessages.length - 1];
-        return lastMessage?.role === 'user' && lastMessage.content === message
-          ? currentMessages.slice(0, -1)
-          : currentMessages;
-      });
-      setMessageInput(currentInput => currentInput || message);
+      if (!receivedText.trim()) {
+        // Nessun testo ricevuto: togliamo domanda e risposta vuota e rimettiamo il testo nell'input
+        setMessages(currentMessages => currentMessages.slice(0, -2));
+        setMessageInput(currentInput => currentInput || message);
+      }
       setRequestError(
-        error.response?.data?.message ??
-        error.message ??
-        'Non è stato possibile inviare il messaggio. Riprova.'
+        error.message || 'Non è stato possibile inviare il messaggio. Riprova.'
       );
     } finally {
       setIsSending(false);
@@ -82,7 +134,7 @@ function ChatBot() {
             Assistente AI
           </h1>
           <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-base">
-            Fai una domanda: l'assistente elaborerà la risposta tramite il backend.
+            Fai una domanda sui documenti caricati: l'assistente risponde usando la base di conoscenza del gestionale.
           </p>
         </header>
 
@@ -112,6 +164,9 @@ function ChatBot() {
             {messages.map((message, index) => {
               const isUser = message.role === 'user';
 
+              // La risposta vuota (in attesa del primo token) non viene mostrata
+              if (!isUser && !message.content) return null;
+
               return (
                 <article
                   key={`${message.role}-${index}`}
@@ -140,7 +195,7 @@ function ChatBot() {
               );
             })}
 
-            {isSending && (
+            {isSending && !messages[messages.length - 1]?.content && (
               <div className="flex items-start gap-3" role="status">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
                   <i className="bi bi-robot" aria-hidden="true" />

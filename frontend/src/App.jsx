@@ -3,6 +3,7 @@ import { NavLink, Route, Routes } from 'react-router';
 import ChatBot from './pages/ChatBot';
 import Dashboard from './pages/Dashboard';
 import Dipendente from './pages/Dipendente';
+import UploadRag from './pages/UploadRag';
 
 function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -11,6 +12,7 @@ function App() {
     { to: '/', label: 'Dashboard', icon: 'bi-grid-1x2' },
     { to: '/dipendenti', label: 'Dipendenti', icon: 'bi-people' },
     { to: '/chat', label: 'Chat', icon: 'bi-chat-dots' },
+    { to: '/upload-rag', label: 'Upload file per sistema RAG', icon: 'bi-file-earmark-arrow-up' },
   ];
 
   return (
@@ -76,6 +78,7 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/dipendenti" element={<Dipendente />} />
           <Route path="/chat" element={<ChatBot />} />
+          <Route path="/upload-rag" element={<UploadRag />} />
         </Routes>
       </div>
     </div>
