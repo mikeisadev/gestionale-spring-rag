@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { API_BASE_URL } from '../config';
 
-const DOCUMENTS_API_URL = 'http://localhost:8081/api/documents';
+const DOCUMENTS_API_URL = `${API_BASE_URL}/api/documents`;
 const MAX_FILE_SIZE_MB = 100; // deve corrispondere a spring.servlet.multipart.max-file-size
 const POLLING_INTERVAL_MS = 2000; // ogni quanto chiediamo lo stato al backend
 

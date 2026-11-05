@@ -43,6 +43,7 @@ Le lezioni create a partire dai file della cartella `/prompt` si trovano nella c
 - [Lezione 2 – Leggere un PDF e dividerlo in chunk](lezioni/02-lettura-e-chunking-pdf.md)
 - [Lezione 3 – Embedding, ricerca semantica e chat RAG](lezioni/03-embedding-e-ricerca-semantica.md)
 - [Lezione 3.1 – Indicizzazione asincrona](lezioni/03b-indicizzazione-asincrona.md)
+- [Lezione 4 – Tutto il progetto in Docker](lezioni/04-passaggio-docker.md)
 
 ## Upload dei PDF (lezione 1)
 | Cosa | Dove |
@@ -80,3 +81,33 @@ All'upload, ogni chunk viene trasformato in un vettore da **1024** valori (Ollam
 L'upload (`POST /api/documents`) risponde subito con **202 Accepted** e un *job*; l'indicizzazione continua in background su un thread dedicato, un PDF alla volta. La pagina React interroga lo stato ogni 2 secondi e mostra fase, avanzamento e stima del tempo.
 
 > **Nota sulle prestazioni**: con Ollama in Docker su macOS gli embedding usano solo la CPU (circa 20 secondi per chunk). Un PDF da 25 pagine (41 chunk) richiede circa 15 minuti. Lo stato dei job è in memoria: si perde al riavvio del backend.
+
+# Avvio con Docker (lezione 4)
+Tutta l'applicazione (database, backend, frontend, strumenti di amministrazione) gira in Docker.
+
+1. Crea il file dei segreti e inserisci la tua chiave OpenAI:
+   ```bash
+   cp docker/.env.example docker/.env
+   ```
+2. Avvia tutto (la prima build richiede qualche minuto):
+   ```bash
+   cd docker && docker compose up -d --build
+   ```
+3. (Solo la prima volta, facoltativo) copia i dati dal MariaDB installato sul computer:
+   ```bash
+   ./docker/scripts/importa-dati-mariadb-locale.sh
+   ```
+
+| Servizio | Indirizzo | Credenziali |
+|---|---|---|
+| Gestionale (React) | http://localhost:3000 | – |
+| Backend (API) | http://localhost:8090 | – |
+| phpMyAdmin (MariaDB) | http://localhost:8082 | `industriatech` / `industriatech123` |
+| pgAdmin (PostgreSQL) | http://localhost:5050 | `admin@example.com` / `admin123`, server *Chatbot PostgreSQL*: `chatbot123` |
+| MariaDB | `localhost:3307` | `industriatech` / `industriatech123` |
+| PostgreSQL + pgvector | `localhost:5433` | `chatbot` / `chatbot123` |
+| Ollama | http://localhost:11434 | – |
+
+**Sviluppo e Docker insieme**: in sviluppo frontend e backend girano su 5173 e 8081 (Vite e VS Code), in Docker su 3000 e 8090. Anche il backend avviato da VS Code usa il MariaDB in Docker (`localhost:3307`): avvia almeno `docker compose up -d mariadb postgres ollama`.
+
+> **Attenzione**: non rinominare la cartella `docker/` e non aggiungere `name:` al compose: i volumi (dati di pgvector, modello Ollama) sono legati al nome del progetto.

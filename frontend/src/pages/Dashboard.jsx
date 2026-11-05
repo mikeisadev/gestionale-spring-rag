@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 function Dashboard() {
   const [numeroDipendenti, setNumeroDipendenti] = useState(null);
   const [erroreCaricamento, setErroreCaricamento] = useState('');
 
   useEffect(() => {
-    axios.get('http://localhost:8081/api/dipendenti')
+    axios.get(`${API_BASE_URL}/api/dipendenti`)
       .then(response => setNumeroDipendenti(response.data.length))
       .catch(error => {
         setErroreCaricamento(

@@ -219,4 +219,4 @@ useEffect(() => {
 6. Cosa succede ai job se riavvii il backend?
 
 ---
-Lezione precedente: [[03-embedding-e-ricerca-semantica]] · Prossimo passo: [[04-passaggio-docker]]
+Lezione precedente: [[03-embedding-e-ricerca-semantica]] · Prossima lezione: [[04-passaggio-docker]]

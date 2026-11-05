@@ -4,6 +4,7 @@ import EmployeeCard from '../components/EmployeeCard';
 import EmployeeForm from '../components/EmployeeForm';
 import EmployeeUpdateModal from '../components/EmployeeUpdateModal';
 import EmployeeDeleteModal from '../components/EmployeeDeleteModal';
+import { API_BASE_URL } from '../config';
 
 function Dipendenti() {
   const [dipendenti, aggiornaDipendenti] = useState(null);
@@ -12,12 +13,12 @@ function Dipendenti() {
   const [dipendenteDaEliminare, setDipendenteDaEliminare] = useState(null);
 
   useEffect(() => {
-    axios.get("http://localhost:8081/api/dipendenti")
+    axios.get(`${API_BASE_URL}/api/dipendenti`)
       .then(response => aggiornaDipendenti(response.data));
   }, []);
 
   async function handleCreateSubmit(dati) {
-    const response = await axios.post("http://localhost:8081/api/dipendenti", dati);
+    const response = await axios.post(`${API_BASE_URL}/api/dipendenti`, dati);
     const nuovoDipendente = response.data.data;
 
     aggiornaDipendenti(dipendenti => [...(dipendenti ?? []), nuovoDipendente]);
@@ -25,7 +26,7 @@ function Dipendenti() {
   }
 
   async function handleDelete(dipendente) {
-    await axios.delete(`http://localhost:8081/api/dipendenti/${dipendente.id}`);
+    await axios.delete(`${API_BASE_URL}/api/dipendenti/${dipendente.id}`);
     aggiornaDipendenti(dipendenti =>
       dipendenti.filter(({ id }) => id !== dipendente.id)
     );
@@ -37,7 +38,7 @@ function Dipendenti() {
 
   async function handleUpdateSubmit(dati) {
     await axios.put(
-      `http://localhost:8081/api/dipendenti/${dipendenteDaAggiornare.id}`,
+      `${API_BASE_URL}/api/dipendenti/${dipendenteDaAggiornare.id}`,
       {
         nome: dati.nome,
         cognome: dati.cognome,

@@ -1,2 +1,5 @@
 # PDF caricati dal frontend per il sistema RAG (dati locali, non vanno su git)
 **/documents/pdf/*.pdf
+
+# Segreti di Docker Compose (chiave OpenAI, password)
+docker/.env

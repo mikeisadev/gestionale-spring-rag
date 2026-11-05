@@ -49,6 +49,7 @@ public class ChatService {
                 // 2. Quando il contesto è pronto, chiediamo la risposta all'LLM
                 .flatMapMany(context -> {
 
+                    // Il system prompt indottrina l'LLM
                     String systemPrompt = """
                         Sei un assistente AI integrato in un gestionale.
                         Devi rispondere alle domande utilizzando

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Markdown from 'react-markdown'
+import { API_BASE_URL } from '../config';
 
 
-const CHAT_API_URL = 'http://localhost:8081/api/chat';
+const CHAT_API_URL = `${API_BASE_URL}/api/chat`;
 
 // Invia il messaggio e legge la risposta in streaming (Server-Sent Events).
 // Ogni evento SSE è separato da una riga vuota e contiene una o più righe "data:".

@@ -1,0 +1,7 @@
+# File che NON servono per costruire l'immagine del backend
+target/
+documents/
+.vscode/
+.idea/
+*.iml
+HELP.md

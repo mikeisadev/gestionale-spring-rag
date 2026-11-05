@@ -61,10 +61,13 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- Lombok: genera getter/setter a compile-time.
+		     "annotationProcessor" non è uno scope Maven valido: Maven lo ignorava
+		     e la build da terminale (e quindi in Docker) falliva. -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<scope>annotationProcessor</scope>
+			<optional>true</optional>
 		</dependency>
 
 
@@ -101,9 +104,33 @@
 
 	<build>
 		<plugins>
+			<!-- Da Java 23 gli annotation processor (come Lombok) vanno dichiarati
+			     esplicitamente: javac non li cerca più da solo nel classpath. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<!-- Lombok serve solo in compilazione: non lo mettiamo nel jar finale -->
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

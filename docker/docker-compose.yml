@@ -1,5 +1,71 @@
+# ============================================================
+# Gestionale + sistema RAG: infrastruttura completa in Docker
+#
+# Avvio:   cd docker && docker compose up -d --build
+# Stop:    docker compose down          (i dati restano nei volumi)
+#
+# Servizio        Container               Porta sul tuo computer
+# ----------------------------------------------------------------
+# frontend        industriatech-frontend     http://localhost:3000
+# backend         industriatech-backend      http://localhost:8090
+# mariadb         industriatech-mariadb      localhost:3307
+# phpmyadmin      industriatech-phpmyadmin   http://localhost:8082
+# postgres        chatbot-postgres        localhost:5433
+# pgadmin         chatbot-pgadmin         http://localhost:5050
+# ollama          chatbot-ollama          http://localhost:11434
+#
+# Le porte di frontend (3000) e backend (8090) sono diverse da quelle dello
+# sviluppo (5173 e 8081): puoi usare Docker e VS Code contemporaneamente.
+#
+# Credenziali e chiave OpenAI: file docker/.env (copia di .env.example).
+# ============================================================
+
 services:
 
+  # ===== DATABASE PRINCIPALE (gestionale) =====
+  mariadb:
+    image: mariadb:lts
+    container_name: industriatech-mariadb
+    restart: unless-stopped
+
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-root123}
+      MARIADB_DATABASE: industriatech
+      MARIADB_USER: ${MARIADB_USER:-industriatech}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-industriatech123}
+
+    ports:
+      # 3307 sul computer: la 3306 è spesso occupata da un MariaDB/MySQL locale
+      - "3307:3306"
+
+    volumes:
+      - mariadb_data:/var/lib/mysql
+
+    healthcheck:
+      # Script incluso nell'immagine ufficiale: verifica che il server accetti connessioni
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: industriatech-phpmyadmin
+    restart: unless-stopped
+
+    environment:
+      PMA_HOST: mariadb          # nome del servizio MariaDB nella rete di Docker
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 100M         # import di file .sql grandi
+
+    ports:
+      - "8082:80"
+
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  # ===== DATABASE VETTORIALE (RAG) =====
   postgres:
     image: pgvector/pgvector:pg17
     container_name: chatbot-postgres
@@ -36,6 +102,10 @@ services:
 
     ports:
       - "5050:80"
+
+    volumes:
+      # Registra automaticamente il server "Chatbot PostgreSQL" (password: chatbot123)
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
 
     depends_on:
       postgres:
@@ -80,6 +150,64 @@ services:
       ollama:
         condition: service_healthy
 
+  # ===== BACKEND SPRING BOOT =====
+  backend:
+    build:
+      context: ../industriatech
+    image: industriatech-backend
+    container_name: industriatech-backend
+    restart: unless-stopped
+
+    # Le variabili d'ambiente sovrascrivono application.properties.
+    # Regola di Spring: spring.datasource.url -> SPRING_DATASOURCE_URL
+    # (maiuscolo, punti e trattini diventano "_").
+    # Dentro Docker i servizi si raggiungono con il NOME DEL SERVIZIO, non con localhost.
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/industriatech
+      SPRING_DATASOURCE_USERNAME: ${MARIADB_USER:-industriatech}
+      SPRING_DATASOURCE_PASSWORD: ${MARIADB_PASSWORD:-industriatech123}
+      APP_DATASOURCE_PGVECTOR_URL: jdbc:postgresql://postgres:5432/chatbot
+      SPRING_AI_OLLAMA_BASE_URL: http://ollama:11434
+      APP_DOCUMENTS_DIRECTORY: /app/documents/pdf
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # In un container non serve stampare ogni query SQL
+      SPRING_JPA_SHOW_SQL: "false"
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: INFO
+
+    ports:
+      - "8090:8081"
+
+    volumes:
+      # Stessa cartella dei PDF usata in sviluppo (gestionale-spring-rag/documents)
+      - ../documents:/app/documents
+
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+      ollama-init:
+        condition: service_completed_successfully
+
+  # ===== FRONTEND REACT (nginx) =====
+  frontend:
+    build:
+      context: ../frontend
+      args:
+        VITE_API_URL: ""   # chiamate relative: /api/... -> proxy nginx -> backend
+    image: industriatech-frontend
+    container_name: industriatech-frontend
+    restart: unless-stopped
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
   ollama_data:
+  mariadb_data:

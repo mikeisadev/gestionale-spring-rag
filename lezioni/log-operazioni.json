@@ -320,6 +320,123 @@
       "fix_durante_i_test": "IndexingJob.start() imposta la fase 'Avvio' (prima restava 'In coda' con stato IN_ELABORAZIONE).",
       "pulizia": "Rimossi i PDF di prova (test-asincrono, test-pagina-bianca, demo-ui) da documents/pdf e le relative 8 righe da vector_store.",
       "non_verificato": "Il PDF reale da 25 pagine non è stato reindicizzato (circa 16 minuti con Ollama in Docker): va ricaricato dalla pagina Upload."
+    },
+    {
+      "id": 23,
+      "data": "2026-11-05T18:05:00+01:00",
+      "prompt": "prompt/4-passaggio-docker.md",
+      "lezione": "lezioni/04-passaggio-docker.md",
+      "azione": "Analisi: MariaDB locale (Homebrew 12.0, db industriatech: 3 dipendenti, 0 contratti), porte occupate (3306, 5173, 8081), URL localhost nel codice",
+      "file": [],
+      "esito": "ok",
+      "nota_didattica": "Prima di containerizzare si cercano tutti i 'localhost' e le porte già occupate."
+    },
+    {
+      "id": 24,
+      "data": "2026-11-05T18:10:00+01:00",
+      "prompt": "prompt/4-passaggio-docker.md",
+      "lezione": "lezioni/04-passaggio-docker.md",
+      "azione": "Correzione Lombok nel pom.xml (scope 'annotationProcessor' non valido + annotationProcessorPaths per Java 23+)",
+      "file": [
+        "industriatech/pom.xml"
+      ],
+      "esito": "ok",
+      "verifica": "mvn package da zero in una copia separata: build riuscita, jar senza lombok né devtools",
+      "nota_didattica": "VS Code compilava con il proprio compilatore e nascondeva il problema; Docker usa Maven."
+    },
+    {
+      "id": 25,
+      "data": "2026-11-05T18:12:00+01:00",
+      "prompt": "prompt/4-passaggio-docker.md",
+      "lezione": "lezioni/04-passaggio-docker.md",
+      "azione": "application.properties: MariaDBDialect e datasource puntato al MariaDB in Docker (localhost:3307, utente dedicato)",
+      "file": [
+        "industriatech/src/main/resources/application.properties"
+      ],
+      "esito": "ok",
+      "effetto_collaterale": "Il backend in VS Code, riavviato da devtools prima che il container fosse attivo, ha smesso di rispondere sulla 8081: va riavviato da VS Code."
+    },
+    {
+      "id": 26,
+      "data": "2026-11-05T18:14:00+01:00",
+      "prompt": "prompt/4-passaggio-docker.md",
+      "lezione": "lezioni/04-passaggio-docker.md",
+      "azione": "Frontend: URL delle API centralizzato in src/config.js (VITE_API_URL)",
+      "file": [
+        "frontend/src/config.js",
+        "frontend/src/pages/ChatBot.jsx",
+        "frontend/src/pages/UploadRag.jsx",
+        "frontend/src/pages/Dashboard.jsx",
+        "frontend/src/pages/Dipendenti.jsx"
+      ],
+      "esito": "ok",
+      "nota_didattica": "Le variabili VITE_* vengono fissate durante la build; in Docker sono vuote, quindi le chiamate sono relative e passano dal proxy nginx."
+    },
+    {
+      "id": 27,
+      "data": "2026-11-05T18:18:00+01:00",
+      "prompt": "prompt/4-passaggio-docker.md",
+      "lezione": "lezioni/04-passaggio-docker.md",
+      "azione": "Dockerfile multi-stage per backend (Maven+JDK25 -> JRE25, utente non-root) e frontend (Node 22 -> nginx), nginx.conf con reverse proxy, .dockerignore",
+      "file": [
+        "industriatech/Dockerfile",
+        "industriatech/.dockerignore",
+        "frontend/Dockerfile",
+        "frontend/.dockerignore",
+        "frontend/nginx.conf"
+      ],
+      "esito": "ok",
+      "nota_didattica": "proxy_buffering off per lo streaming SSE, client_max_body_size 100m per gli upload, try_files per React Router."
+    },
+    {
+      "id": 28,
+      "data": "2026-11-05T18:22:00+01:00",
+      "prompt": "prompt/4-passaggio-docker.md",
+      "lezione": "lezioni/04-passaggio-docker.md",
+      "azione": "docker-compose.yml: aggiunti mariadb, phpmyadmin, backend, frontend; servers.json per pgAdmin; .env.example; docker/.env in .gitignore",
+      "file": [
+        "docker/docker-compose.yml",
+        "docker/pgadmin/servers.json",
+        "docker/.env.example",
+        ".gitignore"
+      ],
+      "esito": "ok",
+      "problema_rilevato": "Il nome 'gestionale-mariadb' era già usato da un container creato a mano il 19/10 (fermo). Non è stato toccato: i nostri container usano il prefisso 'industriatech-'.",
+      "nota_didattica": "Nome del progetto Compose lasciato invariato per non perdere i volumi esistenti (pgvector, modello Ollama)."
+    },
+    {
+      "id": 29,
+      "data": "2026-11-05T18:25:00+01:00",
+      "prompt": "prompt/4-passaggio-docker.md",
+      "lezione": "lezioni/04-passaggio-docker.md",
+      "azione": "Migrazione dei dati dal MariaDB locale al container con lo script docker/scripts/importa-dati-mariadb-locale.sh",
+      "file": [
+        "docker/scripts/importa-dati-mariadb-locale.sh"
+      ],
+      "esito": "ok",
+      "dettagli": "3 dipendenti e 0 contratti copiati; il database locale è stato solo letto."
+    },
+    {
+      "id": 30,
+      "data": "2026-11-05T18:40:00+01:00",
+      "prompt": "prompt/4-passaggio-docker.md",
+      "lezione": "lezioni/04-passaggio-docker.md",
+      "azione": "Avvio di prova (docker compose up -d --build) e test",
+      "file": [],
+      "esito": "ok",
+      "dettagli": {
+        "build": "backend e frontend in circa 5 minuti",
+        "frontend": "/ e /upload-rag 200",
+        "api_via_nginx": "3 dipendenti da MariaDB in Docker",
+        "backend_diretto_8090": "200",
+        "phpmyadmin_pgadmin": "200",
+        "ricerca_semantica": "ok",
+        "chat_sse_via_nginx": "74 pacchetti separati (streaming non bufferizzato)",
+        "upload_via_nginx": "202 in 0.1 s, file scritto nel bind mount, job COMPLETATO"
+      },
+      "problema_rilevato": "Avvio del backend in 228 s e primo token della chat dopo 72 s: Mac con swap 9.3/10 GB e carico medio 163 (memoria esaurita), non un problema di configurazione.",
+      "pulizia": "Rimossi il PDF di test-docker e le sue 4 righe da vector_store.",
+      "osservazione": "Il PDF reale OWASP-Foundation-Strategic-Plan.pdf (25 pagine) risulta indicizzato per intero: 41/41 chunk."
     }
   ]
 }

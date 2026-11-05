@@ -1,0 +1,5 @@
+# File che NON servono per costruire l'immagine del frontend
+node_modules/
+dist/
+Dockerfile
+.dockerignore
