@@ -11,6 +11,13 @@ Più avanti nel corso, il gestionale includerà lo sviluppo di un sistema RAG co
 - **Spring Boot v4.1.1 (*framework*)**
 - **React (*ancora da implementare*)**
 
+## Utilizzo AI
+Inserisci nella cartella /prompt tutti i pezzi delle lezioni di questo corso (docenze Java e Agentic AI) che vuoi esplorare.
+
+Se leggi i singoli file markdown, scoprirai che per ogni operazione otterai una lezione.
+
+**NOTA**: potrai usare le lezioni generate in un LLM wiki con Obsidiain.
+
 # Nota per avviare il frontend
 Ricorda che se chiudi VS Code il dev server di Vite si interrompe e non potrai più vedere i cambiamenti che farai nel codice. 
 

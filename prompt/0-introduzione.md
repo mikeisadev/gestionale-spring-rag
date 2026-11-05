@@ -14,4 +14,5 @@ Parti sempre dalla prima, se non è stata implementata. Le implementazioni succe
 - esegui il log di ogni operazione che fai in un file JSON
 - rendi didatticamente rilevante i log e le azioni che farai creando un file markdown didattico per ogni grande operazione che eseguirai.
 - usa un linguaggio semplice, con esempi tecnici e compatibile con l'inserimento delle lezioni in Obsidian
-- stai creando delle lezioni per un pubblico pravalentemente junior / medior
+- stai creando delle lezioni per un pubblico prevalentemente junior / medior
+- non stravolgere il file README.md (root di questo progetto), ci sono indicazioni, ovvero quelle esistenti, da non stravolgere. Ma hai il permesso di fare delle aggiunte
