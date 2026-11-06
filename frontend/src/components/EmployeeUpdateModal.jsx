@@ -7,6 +7,8 @@ function EmployeeUpdateModal({ dipendente, onClose, onSubmit }) {
     nome: dipendente?.nome ?? "",
     cognome: dipendente?.cognome ?? "",
     email: dipendente?.email ?? "",
+    reparto: dipendente?.reparto ?? "",
+    ruolo: dipendente?.ruolo ?? "",
   });
 
   useEffect(() => {
@@ -14,6 +16,8 @@ function EmployeeUpdateModal({ dipendente, onClose, onSubmit }) {
       nome: dipendente?.nome ?? "",
       cognome: dipendente?.cognome ?? "",
       email: dipendente?.email ?? "",
+      reparto: dipendente?.reparto ?? "",
+      ruolo: dipendente?.ruolo ?? "",
     });
   }, [dipendente]);
 
@@ -148,6 +152,48 @@ function EmployeeUpdateModal({ dipendente, onClose, onSubmit }) {
               }}
               placeholder="nome@esempio.it"
               required
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="reparto"
+              className="mb-2 block text-sm font-semibold text-slate-700"
+            >
+              Reparto <span className="font-normal text-slate-400">(facoltativo)</span>
+            </label>
+            <input
+              id="reparto"
+              name="reparto"
+              type="text"
+              value={form.reparto}
+              onChange={(e) => {
+                setSubmitError("");
+                handleChange(e);
+              }}
+              placeholder="Es. IT"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+            />
+          </div>
+
+          <div>
+            <label
+              htmlFor="ruolo"
+              className="mb-2 block text-sm font-semibold text-slate-700"
+            >
+              Ruolo <span className="font-normal text-slate-400">(facoltativo)</span>
+            </label>
+            <input
+              id="ruolo"
+              name="ruolo"
+              type="text"
+              value={form.ruolo}
+              onChange={(e) => {
+                setSubmitError("");
+                handleChange(e);
+              }}
+              placeholder="Es. Sviluppatore backend"
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
             />
           </div>

@@ -5,3 +5,24 @@
 .heading {
   @apply text-[40px] text-[#c84a9c] underline font-bold;
 }
+/* Lezione 12: aspetto delle pagine della wiki (Wiki Explorer) */
+.wiki-markdown {
+  @apply text-[15px] leading-7 text-slate-700;
+}
+.wiki-markdown h1 { @apply mt-2 mb-4 text-2xl font-bold tracking-tight text-slate-950; }
+.wiki-markdown h2 { @apply mt-8 mb-3 border-b border-slate-100 pb-1 text-xl font-semibold text-slate-900; }
+.wiki-markdown h3 { @apply mt-6 mb-2 text-lg font-semibold text-slate-900; }
+.wiki-markdown p { @apply my-3; }
+.wiki-markdown ul { @apply my-3 list-disc pl-6; }
+.wiki-markdown ol { @apply my-3 list-decimal pl-6; }
+.wiki-markdown li { @apply my-1; }
+.wiki-markdown a { @apply font-medium text-indigo-700 underline decoration-indigo-200 underline-offset-2 hover:decoration-indigo-500; }
+.wiki-markdown blockquote { @apply my-4 border-l-4 border-indigo-200 bg-indigo-50/50 px-4 py-2 text-slate-600; }
+.wiki-markdown code { @apply rounded bg-slate-100 px-1 py-0.5 text-[13px] text-slate-800; }
+.wiki-markdown pre { @apply my-4 overflow-x-auto rounded-xl bg-slate-900 p-4 text-[13px] text-slate-100; }
+.wiki-markdown pre code { @apply bg-transparent p-0 text-slate-100; }
+.wiki-markdown table { @apply my-4 block overflow-x-auto text-sm; }
+.wiki-markdown th { @apply border border-slate-200 bg-slate-50 px-3 py-2 text-left font-semibold; }
+.wiki-markdown td { @apply border border-slate-200 px-3 py-2 align-top; }
+.wiki-markdown img, .wiki-markdown video { @apply my-4 max-w-full rounded-xl border border-slate-200; }
+.wiki-markdown hr { @apply my-6 border-slate-200; }

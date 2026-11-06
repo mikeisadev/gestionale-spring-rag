@@ -13,6 +13,8 @@
 # postgres        chatbot-postgres        localhost:5433
 # pgadmin         chatbot-pgadmin         http://localhost:5050
 # ollama          chatbot-ollama          http://localhost:11434
+# mailpit         industriatech-mailpit   http://localhost:8025 (email di test)
+# zipkin          industriatech-zipkin    http://localhost:9411 (tracce delle richieste)
 #
 # Le porte di frontend (3000) e backend (8090) sono diverse da quelle dello
 # sviluppo (5173 e 8081): puoi usare Docker e VS Code contemporaneamente.
@@ -150,6 +152,26 @@ services:
       ollama:
         condition: service_healthy
 
+  # ===== EMAIL DI TEST (lezione 6) =====
+  # Mailpit è un server email "finto": riceve le email inviate dal backend
+  # e le mostra in una pagina web, senza spedirle davvero a nessuno.
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: industriatech-mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"   # pagina web
+      - "1025:1025"   # SMTP (usato dal backend)
+
+  # ===== TRACCE (lezione 9) =====
+  # Zipkin raccoglie le tracce: ogni richiesta scomposta nei suoi passaggi con la durata
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: industriatech-zipkin
+    restart: unless-stopped
+    ports:
+      - "9411:9411"
+
   # ===== BACKEND SPRING BOOT =====
   backend:
     build:
@@ -170,6 +192,30 @@ services:
       SPRING_AI_OLLAMA_BASE_URL: http://ollama:11434
       APP_DOCUMENTS_DIRECTORY: /app/documents/pdf
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # Lezione 9: tracce verso il container Zipkin
+      MANAGEMENT_TRACING_EXPORT_ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      # Nel container NON stampiamo i prompt completi (contengono dati di utenti e documenti)
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_AI_CHAT_CLIENT_ADVISOR: INFO
+      # Lezione 6: email di test e n8n
+      SPRING_MAIL_HOST: mailpit
+      SPRING_MAIL_PORT: "1025"
+      # n8n gira in un'ALTRA configurazione Docker (la tua): dal container lo raggiungiamo
+      # tramite il computer host, con il nome speciale host.docker.internal
+      APP_N8N_BASE_URL: http://host.docker.internal:5678
+      N8N_API_KEY: ${N8N_API_KEY:-}
+      N8N_MCP_TOKEN: ${N8N_MCP_TOKEN:-}
+      # Lezione 11: la LLM Wiki, montata in sola lettura (vedi "volumes" qui sotto)
+      APP_WIKI_VAULT_PATH: /app/wiki
+      # Lezione 13: primo amministratore (solo da docker/.env, mai scritto qui) e cookie di sessione.
+      # Dietro HTTPS in produzione: SESSION_COOKIE_SECURE=true
+      APP_BOOTSTRAP_ADMIN_EMAIL: ${APP_BOOTSTRAP_ADMIN_EMAIL:-}
+      APP_BOOTSTRAP_ADMIN_PASSWORD: ${APP_BOOTSTRAP_ADMIN_PASSWORD:-}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-false}
+      # Solo per mostrare il nome del vault nella pagina (dentro il container la cartella si chiama "wiki")
+      APP_WIKI_DISPLAY_PATH: ${WIKI_VAULT_PATH:-llm-wiki-esempio}
+      # Fuso orario della JVM: senza, il container usa UTC e le date delle chat
+      # risulterebbero un'ora indietro rispetto all'app avviata da VS Code
+      TZ: Europe/Rome
       # In un container non serve stampare ogni query SQL
       SPRING_JPA_SHOW_SQL: "false"
       LOGGING_LEVEL_ORG_HIBERNATE_SQL: INFO
@@ -180,6 +226,11 @@ services:
     volumes:
       # Stessa cartella dei PDF usata in sviluppo (gestionale-spring-rag/documents)
       - ../documents:/app/documents
+      # Lezione 11: il vault della LLM Wiki in SOLA LETTURA (":ro").
+      # Senza WIKI_VAULT_PATH in docker/.env si usa la wiki di esempio del progetto.
+      # ATTENZIONE: usa lo stesso vault del backend di VS Code. I due backend condividono
+      # pgvector: reindicizzando un vault diverso, l'altro vedrebbe "sparire" le sue pagine.
+      - ${WIKI_VAULT_PATH:-../llm-wiki-esempio}:/app/wiki:ro
 
     depends_on:
       mariadb:
@@ -190,6 +241,10 @@ services:
         condition: service_healthy
       ollama-init:
         condition: service_completed_successfully
+      mailpit:
+        condition: service_started
+      zipkin:
+        condition: service_started
 
   # ===== FRONTEND REACT (nginx) =====
   frontend:

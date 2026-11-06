@@ -5,6 +5,8 @@ function EmployeeForm({ onClose, onSubmit }) {
     nome: "",
     cognome: "",
     email: "",
+    reparto: "",
+    ruolo: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -129,6 +131,42 @@ function EmployeeForm({ onClose, onSubmit }) {
                   value={formDipendente.email}
                   onChange={handleInput}
                   required
+                  className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="new-employee-reparto" className="mb-2 block text-sm font-medium text-slate-700">
+                Reparto <span className="font-normal text-slate-400">(facoltativo)</span>
+              </label>
+              <div className="relative">
+                <i className="bi bi-diagram-3 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                <input
+                  type="text"
+                  id="new-employee-reparto"
+                  name="reparto"
+                  placeholder="Es. IT"
+                  value={formDipendente.reparto}
+                  onChange={handleInput}
+                  className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="new-employee-ruolo" className="mb-2 block text-sm font-medium text-slate-700">
+                Ruolo <span className="font-normal text-slate-400">(facoltativo)</span>
+              </label>
+              <div className="relative">
+                <i className="bi bi-briefcase absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                <input
+                  type="text"
+                  id="new-employee-ruolo"
+                  name="ruolo"
+                  placeholder="Es. Sviluppatore backend"
+                  value={formDipendente.ruolo}
+                  onChange={handleInput}
                   className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-100"
                 />
               </div>

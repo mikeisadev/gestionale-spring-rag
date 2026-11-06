@@ -7,6 +7,7 @@ import com.gestionale.industriatech.model.IndexingStatus;
 public record IndexingJobResponse(
     String id,
     String filename,
+    int version,        // lezione 10
     IndexingStatus status,
     String phase,
     int pages,

@@ -4,6 +4,10 @@ import ChatBot from './pages/ChatBot';
 import Dashboard from './pages/Dashboard';
 import Dipendente from './pages/Dipendente';
 import UploadRag from './pages/UploadRag';
+import WikiAskPage from './pages/wiki/WikiAskPage';
+import WikiExplorer from './pages/wiki/WikiExplorer';
+import WikiPageView from './pages/wiki/WikiPageView';
+import WikiSearchPage from './pages/wiki/WikiSearchPage';
 
 function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -13,6 +17,7 @@ function App() {
     { to: '/dipendenti', label: 'Dipendenti', icon: 'bi-people' },
     { to: '/chat', label: 'Chat', icon: 'bi-chat-dots' },
     { to: '/upload-rag', label: 'Upload file per sistema RAG', icon: 'bi-file-earmark-arrow-up' },
+    { to: '/wiki', label: 'Wiki Explorer', icon: 'bi-journal-richtext' }, // lezione 12
   ];
 
   return (
@@ -78,7 +83,15 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/dipendenti" element={<Dipendente />} />
           <Route path="/chat" element={<ChatBot />} />
+          {/* Lezione 5: una chat salvata si apre con il suo ID nell'indirizzo */}
+          <Route path="/chat/:conversationId" element={<ChatBot />} />
           <Route path="/upload-rag" element={<UploadRag />} />
+          {/* Lezione 12: Wiki Explorer, con tre pagine dentro la stessa cornice */}
+          <Route path="/wiki" element={<WikiExplorer />}>
+            <Route index element={<WikiSearchPage />} />
+            <Route path="page" element={<WikiPageView />} />
+            <Route path="ask" element={<WikiAskPage />} />
+          </Route>
         </Routes>
       </div>
     </div>

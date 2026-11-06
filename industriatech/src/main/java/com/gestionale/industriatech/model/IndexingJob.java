@@ -16,6 +16,7 @@ public class IndexingJob {
 
     private final String id = UUID.randomUUID().toString();
     private final String filename;
+    private final int version; // lezione 10: versione del documento (1 = nuovo documento)
     private final long createdAt = System.currentTimeMillis();
 
     private IndexingStatus status = IndexingStatus.IN_CODA;
@@ -27,8 +28,9 @@ public class IndexingJob {
     private Long startedAt;
     private Long finishedAt;
 
-    public IndexingJob(String filename) {
+    public IndexingJob(String filename, int version) {
         this.filename = filename;
+        this.version = version;
     }
 
     public String getId() {
@@ -74,7 +76,7 @@ public class IndexingJob {
 
     public synchronized IndexingJobResponse toResponse() {
         return new IndexingJobResponse(
-                id, filename, status, phase, pages, chunks, chunksIndexed,
+                id, filename, version, status, phase, pages, chunks, chunksIndexed,
                 message, createdAt, startedAt, finishedAt
         );
     }

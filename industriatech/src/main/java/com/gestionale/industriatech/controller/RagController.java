@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.gestionale.industriatech.dto.SemanticSearchRequest;
 import com.gestionale.industriatech.dto.SemanticSearchResult;
+import com.gestionale.industriatech.security.CurrentUserProvider;
 import com.gestionale.industriatech.service.RagService;
 
 import reactor.core.publisher.Mono;
@@ -28,13 +28,15 @@ import reactor.core.scheduler.Schedulers;
  */
 @RestController
 @RequestMapping("/api/rag")
-@CrossOrigin(origins = "http://localhost:5173")
+// Lezione 13: niente @CrossOrigin qui, CORS è configurato una volta sola in SecurityConfig
 public class RagController {
 
     private final RagService ragService;
+    private final CurrentUserProvider currentUserProvider;
 
-    public RagController(RagService ragService) {
+    public RagController(RagService ragService, CurrentUserProvider currentUserProvider) {
         this.ragService = ragService;
+        this.currentUserProvider = currentUserProvider;
     }
 
     @PostMapping("/search")
@@ -57,7 +59,8 @@ public class RagController {
         return Mono.fromCallable(() ->
                     ragService.searchDocuments(
                             request.query(),
-                            topK
+                            topK,
+                            currentUserProvider.currentUser() // lezione 11: filtro per reparto
                     )
                 )
                 .subscribeOn(Schedulers.boundedElastic());

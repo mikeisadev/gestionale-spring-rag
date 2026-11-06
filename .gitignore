@@ -3,3 +3,6 @@
 
 # Segreti di Docker Compose (chiave OpenAI, password)
 docker/.env
+
+# Variabili locali per il backend avviato da VS Code (envFile in .vscode/launch.json), lezione 11
+/.env

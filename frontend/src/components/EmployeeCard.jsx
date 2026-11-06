@@ -15,8 +15,9 @@ function EmployeeCard({ dati, onAggiorna, onElimina }) {
               {dati.nome} {dati.cognome}
             </h3>
 
-            <p className="mt-1 text-xs font-medium uppercase tracking-wider text-slate-400">
-              Dipendente
+            <p className="mt-1 truncate text-xs font-medium uppercase tracking-wider text-slate-400">
+              {dati.ruolo || 'Dipendente'}
+              {dati.reparto && <span className="text-indigo-500"> · {dati.reparto}</span>}
             </p>
           </div>
         </div>

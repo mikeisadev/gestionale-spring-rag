@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,7 +25,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173")
+// Lezione 13: niente @CrossOrigin qui, CORS è configurato una volta sola in SecurityConfig
 public class DipendentiController {
 
     private static final Logger log = LoggerFactory.getLogger(DipendentiController.class);
@@ -111,6 +110,9 @@ public class DipendentiController {
         nuovoDipendente.setNome( request.getNome() );
         nuovoDipendente.setCognome( request.getCognome() );
         nuovoDipendente.setEmail( request.getEmail() );
+        // Reparto e ruolo sono facoltativi (lezione 6)
+        nuovoDipendente.setReparto( request.getReparto() != null ? request.getReparto().trim() : null );
+        nuovoDipendente.setRuolo( request.getRuolo() != null ? request.getRuolo().trim() : null );
 
         // 3) Uso la repository per salvare il nuovo dipendente nel database
         // CREATE
@@ -193,6 +195,11 @@ public class DipendentiController {
             if (request.getCognome() != null) dipendente.setCognome(request.getCognome().isBlank() ? dipendente.getCognome() : request.getCognome().trim());
             
             if (request.getEmail() != null) dipendente.setEmail(request.getEmail().isBlank() ? dipendente.getEmail() : request.getEmail().trim());
+
+            // Reparto e ruolo (lezione 6): un valore vuoto li cancella
+            if (request.getReparto() != null) dipendente.setReparto(request.getReparto().isBlank() ? null : request.getReparto().trim());
+
+            if (request.getRuolo() != null) dipendente.setRuolo(request.getRuolo().isBlank() ? null : request.getRuolo().trim());
 
             // Salviamo il dipendente
             dipendentiRepository.save(dipendente);

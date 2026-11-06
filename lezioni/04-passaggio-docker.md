@@ -326,4 +326,4 @@ cp docker/.env.example docker/.env   # poi inserisci la tua OPENAI_API_KEY
 6. Perché non bisogna cambiare il nome del progetto Compose?
 
 ---
-Lezione precedente: [[03b-indicizzazione-asincrona]]
+Lezione precedente: [[03b-indicizzazione-asincrona]] · Prossima lezione: [[05-memoria-e-persistenza-conversazioni]]

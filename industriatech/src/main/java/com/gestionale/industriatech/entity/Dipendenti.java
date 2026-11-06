@@ -28,6 +28,13 @@ public class Dipendenti {
     @Column(unique = true)
     private String email;
 
+    // Lezione 6: servono agli strumenti dell'agente ("Chi lavora nel reparto IT?")
+    @Column(length = 50)
+    private String reparto;   // es. IT, HR, Vendite
+
+    @Column(length = 80)
+    private String ruolo;     // es. Sviluppatore backend
+
     public Dipendenti() {
     }
 

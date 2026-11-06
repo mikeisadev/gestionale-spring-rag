@@ -437,6 +437,972 @@
       "problema_rilevato": "Avvio del backend in 228 s e primo token della chat dopo 72 s: Mac con swap 9.3/10 GB e carico medio 163 (memoria esaurita), non un problema di configurazione.",
       "pulizia": "Rimossi il PDF di test-docker e le sue 4 righe da vector_store.",
       "osservazione": "Il PDF reale OWASP-Foundation-Strategic-Plan.pdf (25 pagine) risulta indicizzato per intero: 41/41 chunk."
+    },
+    {
+      "id": 31,
+      "data": "2026-11-06T00:05:00+01:00",
+      "prompt": "prompt/05-persistenza-conversazioni.md",
+      "lezione": "lezioni/05-memoria-e-persistenza-conversazioni.md",
+      "azione": "Revisione dei prompt rinumerati (00-13) e verifica nel jar delle API di Spring AI 2.0.1 citate dal prompt 05",
+      "file": [],
+      "esito": "ok",
+      "dettagli": {
+        "ToolCallingAdvisor.DEFAULT_ORDER": "esiste",
+        "DEFAULT_CHAT_MEMORY_PRECEDENCE_ORDER": "HIGHEST_PRECEDENCE + 200",
+        "Prompt.augmentUserMessage(String)": "esiste",
+        "METADATA_START_PAGE_NUMBER": "vale 'page_number' (spiega la scoperta della lezione 2)"
+      },
+      "problema_rilevato": "MessageWindowChatMemory + JdbcChatMemoryRepository conservano solo gli ultimi N messaggi (saveAll sostituisce la finestra): la memoria non basta per rivedere le chat.",
+      "decisione": "Memoria dell'LLM su PostgreSQL (come da prompt) + archivio completo delle chat su MariaDB (JPA) per l'interfaccia."
+    },
+    {
+      "id": 32,
+      "data": "2026-11-06T00:12:00+01:00",
+      "prompt": "prompt/05-persistenza-conversazioni.md",
+      "lezione": "lezioni/05-memoria-e-persistenza-conversazioni.md",
+      "azione": "Memoria e advisor: dipendenze (chat-memory-repository-jdbc, validation), ChatClientConfig (schema, repository Postgres, MessageWindowChatMemory 10, ChatClient con advisor), DocumentContextAdvisor, system-prompt.st, RagService.formatAsContext/neutralizeTags",
+      "file": [
+        "industriatech/pom.xml",
+        "industriatech/src/main/java/com/gestionale/industriatech/config/ChatClientConfig.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/rag/DocumentContextAdvisor.java",
+        "industriatech/src/main/resources/prompts/system-prompt.st",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/RagService.java"
+      ],
+      "esito": "ok",
+      "adattamento": "Tabella SPRING_AI_CHAT_MEMORY creata all'avvio con lo script ufficiale incluso nel jar (DataSourceInitializer sul datasource pgvector) invece che a mano da pgAdmin.",
+      "nota_didattica": "La memoria salva la domanda pulita; i documenti li aggiunge DocumentContextAdvisor (ordine +250) solo per la chiamata corrente."
+    },
+    {
+      "id": 33,
+      "data": "2026-11-06T00:16:00+01:00",
+      "prompt": "prompt/05-persistenza-conversazioni.md",
+      "lezione": "lezioni/05-memoria-e-persistenza-conversazioni.md",
+      "azione": "Archivio delle chat: entità Conversazione e MessaggioChat, repository, ConversationService, DTO, ChatRequest con validazione, ChatService con conversationId, endpoint GET/DELETE /api/chat/conversations",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/entity/Conversazione.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/entity/MessaggioChat.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/ConversazioneRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/MessaggioChatRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/ConversationService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/ConversationSummary.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/ChatMessageResponse.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/ChatRequest.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/ChatService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/ChatBotController.java"
+      ],
+      "esito": "ok",
+      "adattamento": "conversationId limitato a 36 caratteri (colonna VARCHAR(36)); secondo ChatClient senza advisor per i metodi didattici senza RAG.",
+      "problema_rilevato": "@Lob su MariaDB con Hibernate 7 ha creato la colonna 'contenuto' come tinytext (255 byte).",
+      "soluzione": "@Column(columnDefinition = \"LONGTEXT\") e ALTER TABLE messaggi_chat MODIFY contenuto LONGTEXT NOT NULL (tabella vuota): ddl-auto=update non cambia il tipo di colonne esistenti."
+    },
+    {
+      "id": 34,
+      "data": "2026-11-06T00:24:00+01:00",
+      "prompt": "prompt/05-persistenza-conversazioni.md",
+      "lezione": "lezioni/05-memoria-e-persistenza-conversazioni.md",
+      "azione": "Frontend: pagina Chat con elenco chat, Nuova chat, eliminazione, route /chat/:conversationId, UUID generato al primo messaggio",
+      "file": [
+        "frontend/src/pages/ChatBot.jsx",
+        "frontend/src/App.jsx"
+      ],
+      "esito": "ok",
+      "nota_didattica": "Un useRef evita di ricaricare i messaggi quando l'indirizzo cambia durante lo streaming del primo messaggio."
+    },
+    {
+      "id": 35,
+      "data": "2026-11-06T00:26:00+01:00",
+      "prompt": "prompt/05-persistenza-conversazioni.md",
+      "lezione": "lezioni/05-memoria-e-persistenza-conversazioni.md",
+      "azione": "Test di memoria, persistenza, API e interfaccia",
+      "file": [],
+      "esito": "ok",
+      "dettagli": {
+        "memoria": "follow-up 'E il repository?' / 'E il controller invece?' risolti grazie allo storico",
+        "memoria_pulita": "domanda salvata senza chunk (27 caratteri)",
+        "finestra": "memoria 10 messaggi, archivio 12",
+        "riavvio": "memoria sopravvissuta; 'prima domanda' = prima della finestra",
+        "validazione": "400 per ID non valido e messaggio vuoto",
+        "404": "chat inesistente",
+        "delete": "204, archivio e memoria svuotati",
+        "browser": "nuova chat con URL /chat/<uuid> senza interrompere lo streaming, riapertura, reload, nuova chat, cestino"
+      },
+      "limite_osservato": "La ricerca semantica usa la domanda nuda: 'Quali sono i suoi vantaggi?' trova chunk del PDF OWASP. Soluzione futura: riscrittura della domanda (punto 11.6).",
+      "pulizia": "Chat di test eliminate (memoria e archivio a 0)."
+    },
+    {
+      "id": 36,
+      "data": "2026-11-06T00:28:00+01:00",
+      "prompt": "prompt/05-persistenza-conversazioni.md",
+      "lezione": "lezioni/05-memoria-e-persistenza-conversazioni.md",
+      "azione": "Immagini Docker ricostruite con il codice della lezione 5 e prova via nginx (porta 3000); fuso orario Europe/Rome per il container del backend",
+      "file": [
+        "docker/docker-compose.yml"
+      ],
+      "esito": "ok",
+      "dettagli": "Memoria e conversazioni funzionano anche in Docker. Le date delle chat salvate dal container erano in UTC (un'ora indietro rispetto all'app in VS Code): aggiunta la variabile TZ=Europe/Rome.",
+      "nota_didattica": "LocalDateTime non contiene il fuso orario: due istanze con fusi diversi che scrivono nello stesso database producono orari incoerenti."
+    },
+    {
+      "id": 37,
+      "data": "2026-11-06T00:30:00+01:00",
+      "prompt": "prompt/06-function-calling.md",
+      "lezione": "lezioni/06-strumenti-function-calling.md",
+      "azione": "Analisi del prompt 06 e verifica nel jar di @Tool, ToolContext, limiti (spring.ai.tools.limits.*), classi MCP (McpToolFilter, ToolContextToMcpMetaConverter, McpSyncHttpClientRequestCustomizer)",
+      "file": [],
+      "esito": "ok",
+      "decisioni_utente": "Aggiungere reparto e ruolo a Dipendenti; implementare bozze email (con Mailpit), ticket via webhook n8n e client MCP verso n8n; NON aggiungere n8n al docker-compose (si usa l'istanza dell'utente).",
+      "osservazione": "L'n8n dell'utente (Desktop/Automations/N8N) era spento: non è stato avviato."
+    },
+    {
+      "id": 38,
+      "data": "2026-11-06T00:32:00+01:00",
+      "prompt": "prompt/06-function-calling.md",
+      "lezione": "lezioni/06-strumenti-function-calling.md",
+      "azione": "Dipendenti: campi reparto e ruolo (entity, repository, controller, form, finestra di modifica, scheda)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/entity/Dipendenti.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/DipendentiRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/DipendentiController.java",
+        "frontend/src/components/EmployeeForm.jsx",
+        "frontend/src/components/EmployeeUpdateModal.jsx",
+        "frontend/src/components/EmployeeCard.jsx"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 39,
+      "data": "2026-11-06T00:34:00+01:00",
+      "prompt": "prompt/06-function-calling.md",
+      "lezione": "lezioni/06-strumenti-function-calling.md",
+      "azione": "Strumenti: UserContext + CurrentUserProvider (utente demo, temporaneo fino al prompt 13), EmployeeTools (3 tool), EmailTools + bozze email (entity, service, controller REST), SupportTicketTools (webhook n8n), McpClientConfig (Bearer solo verso n8n, filtro strumenti, noOp del _meta)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/security/UserContext.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/security/CurrentUserProvider.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/tools/EmployeeTools.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/tools/EmailTools.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/tools/SupportTicketTools.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/tools/ToolAccessDeniedException.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/entity/BozzaEmail.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/BozzaEmailRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/EmailDraftService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/EmailDraftController.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/EmailDraftResponse.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/config/McpClientConfig.java"
+      ],
+      "esito": "ok",
+      "adattamento": "UserContext senza from(Jwt): non c'è ancora Spring Security; l'utente arriva da proprietà app.demo-user.*."
+    },
+    {
+      "id": 40,
+      "data": "2026-11-06T00:36:00+01:00",
+      "prompt": "prompt/06-function-calling.md",
+      "lezione": "lezioni/06-strumenti-function-calling.md",
+      "azione": "Collegamento: defaultTools nel ChatClient + strumenti MCP opzionali, toolContext in ChatService, limiti degli strumenti, system prompt aggiornato, dipendenze mail e mcp-client, Mailpit nel docker-compose, variabili n8n",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/config/ChatClientConfig.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/ChatService.java",
+        "industriatech/src/main/resources/prompts/system-prompt.st",
+        "industriatech/src/main/resources/application.properties",
+        "industriatech/pom.xml",
+        "docker/docker-compose.yml",
+        "docker/.env.example"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 41,
+      "data": "2026-11-06T00:38:00+01:00",
+      "prompt": "prompt/06-function-calling.md",
+      "lezione": "lezioni/06-strumenti-function-calling.md",
+      "azione": "Correzione di un bug della lezione 5 emerso nei test: errore 500 'Record has changed since last read in table conversazioni'",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/ChatService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/ConversationService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/ConversazioneRepository.java"
+      ],
+      "esito": "ok",
+      "causa": "Salvataggio della risposta in background (doFinally) in conflitto con la domanda successiva; MariaDB 12 ha innodb_snapshot_isolation=ON.",
+      "soluzione": "Salvataggio prima della chiusura dello stream (concatWith) + UPDATE diretto della data (@Modifying @Query) invece di leggi-modifica-salva.",
+      "verifica": "7 domande ravvicinate: 0 errori."
+    },
+    {
+      "id": 42,
+      "data": "2026-11-06T00:40:00+01:00",
+      "prompt": "prompt/06-function-calling.md",
+      "lezione": "lezioni/06-strumenti-function-calling.md",
+      "azione": "Correzione della ricerca per nome completo ('Paolo Neri' non veniva trovato)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/DipendentiRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/tools/EmployeeTools.java"
+      ],
+      "esito": "ok",
+      "soluzione": "Query JPQL su CONCAT(nome, ' ', cognome) e CONCAT(cognome, ' ', nome)."
+    },
+    {
+      "id": 43,
+      "data": "2026-11-06T00:42:00+01:00",
+      "prompt": "prompt/06-function-calling.md",
+      "lezione": "lezioni/06-strumenti-function-calling.md",
+      "azione": "Frontend: pannello 'Bozze email da confermare' con Conferma invio / Annulla",
+      "file": [
+        "frontend/src/components/EmailDraftsPanel.jsx",
+        "frontend/src/pages/ChatBot.jsx"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 44,
+      "data": "2026-11-06T00:43:00+01:00",
+      "prompt": "prompt/06-function-calling.md",
+      "lezione": "lezioni/06-strumenti-function-calling.md",
+      "azione": "Test degli strumenti",
+      "file": [],
+      "esito": "ok",
+      "dettagli": {
+        "reparto_IT": "Luca Bianchi e Sara Verdi",
+        "reparto_HR": "accesso negato, anche fingendosi admin",
+        "ricerca_nome": "Sara trovata; Paolo (HR) invisibile",
+        "email": "bozza creata dopo la ricerca dell'indirizzo; conferma da browser -> Mailpit; secondo invio 409; dominio esterno rifiutato",
+        "ticket": "finto n8n ha ricevuto userId e department dal ToolContext con X-Api-Key valida",
+        "mcp": "non provato dal vivo (n8n dell'utente spento)"
+      },
+      "pulizia": "Eliminati 3 dipendenti di test, 4 chat, 2 bozze, email in Mailpit; i 3 dipendenti originali sono intatti."
+    },
+    {
+      "id": 45,
+      "data": "2026-11-06T01:15:00+01:00",
+      "prompt": "prompt/07-salvare-resoconto-chunking-e-embedding.md",
+      "lezione": "lezioni/07-storico-e-log-indicizzazione.md",
+      "azione": "Storico e log su MariaDB: entità DocumentoIndicizzato e LogIndicizzazione, repository, DTO, IndexingHistoryService, endpoint GET /api/documents/history e /history/{id}/logs",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/entity/DocumentoIndicizzato.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/entity/LogIndicizzazione.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/DocumentoIndicizzatoRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/LogIndicizzazioneRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/DocumentHistoryResponse.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/IndexingLogResponse.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/IndexingHistoryService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/DocumentController.java"
+      ],
+      "esito": "ok",
+      "nota_didattica": "Stato vivo in memoria (polling) + storico permanente su database, con lo stesso id."
+    },
+    {
+      "id": 46,
+      "data": "2026-11-06T01:18:00+01:00",
+      "prompt": "prompt/07-salvare-resoconto-chunking-e-embedding.md",
+      "lezione": "lezioni/07-storico-e-log-indicizzazione.md",
+      "azione": "Log dettagliati della pipeline: lettura (pagine, caratteri, tempi), chunking (parametri reali, min/media/max, pagine divise, anteprima), embedding (modello, blocchi, tempi, media per chunk), fine",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/PdfProcessingService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentIndexingService.java"
+      ],
+      "esito": "ok",
+      "adattamento": "Parametri del TokenTextSplitter resi costanti pubbliche, usate sia dallo splitter sia dal log."
+    },
+    {
+      "id": 47,
+      "data": "2026-11-06T01:20:00+01:00",
+      "prompt": "prompt/07-salvare-resoconto-chunking-e-embedding.md",
+      "lezione": "lezioni/07-storico-e-log-indicizzazione.md",
+      "azione": "Recupero dello storico dei documenti indicizzati prima della lezione 7 (ApplicationRunner su pgvector, idempotente)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentHistoryBackfill.java"
+      ],
+      "esito": "ok",
+      "dettagli": "Aggiunti OWASP-Foundation-Strategic-Plan.pdf (25 pagine, 41 chunk, 39,4 MB) e manuale-spring.pdf (3 pagine, 4 chunk)."
+    },
+    {
+      "id": 48,
+      "data": "2026-11-06T01:24:00+01:00",
+      "prompt": "prompt/07-salvare-resoconto-chunking-e-embedding.md",
+      "lezione": "lezioni/07-storico-e-log-indicizzazione.md",
+      "azione": "Frontend: box 'Caricamenti in corso', 'Storico dei file caricati', finestra 'Vedi log' con aggiornamento in tempo reale",
+      "file": [
+        "frontend/src/pages/UploadRag.jsx",
+        "frontend/src/components/IndexingLogModal.jsx"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 49,
+      "data": "2026-11-06T01:33:00+01:00",
+      "prompt": "prompt/07-salvare-resoconto-chunking-e-embedding.md",
+      "lezione": "lezioni/07-storico-e-log-indicizzazione.md",
+      "azione": "Test: upload dal browser, PDF vuoto, spegnimento ordinato e kill -9 durante l'embedding",
+      "file": [],
+      "esito": "ok",
+      "problemi_rilevati": [
+        "Spegnimento ordinato: messaggio tecnico ('I/O error on POST ... /api/embed') perché Spring chiude il client HTTP prima del @PreDestroy. Soluzione: flag impostato su ContextClosedEvent.",
+        "kill -9: lo storico restava IN_ELABORAZIONE e potevano restare chunk parziali. Soluzione: all'avvio (ApplicationReadyEvent) i documenti rimasti in corso vengono segnati ERRORE e i loro chunk rimossi con un filtro sul metadato source."
+      ],
+      "dettagli": {
+        "upload_browser": "log in tempo reale, poi riga nello storico (15 s)",
+        "pdf_vuoto": "ERRORE con messaggio",
+        "spegnimento_ordinato": "ERRORE 'interrotta dallo spegnimento', 0 chunk",
+        "kill_9": "ERRORE 'interrotta dal riavvio', chunk parziali rimossi"
+      },
+      "pulizia": "Rimossi 6 documenti demo (storico, log, 4 chunk, 6 file in documents/pdf); restano i 2 documenti dell'utente."
+    },
+    {
+      "id": 50,
+      "data": "2026-11-06T01:42:00+01:00",
+      "prompt": "prompt/08-implementare-guardrail.md",
+      "lezione": "lezioni/08-guardrail-difese-a-strati.md",
+      "azione": "Verifica API: spring.ai.openai.chat.max-tokens, SafeGuardAdvisor.Builder, Bucket4j 8.17.0; nessun rehype-raw/dangerouslySetInnerHTML nel frontend",
+      "file": [],
+      "esito": "ok"
+    },
+    {
+      "id": 51,
+      "data": "2026-11-06T01:46:00+01:00",
+      "prompt": "prompt/08-implementare-guardrail.md",
+      "lezione": "lezioni/08-guardrail-difese-a-strati.md",
+      "azione": "Guardrail backend: InputGuard (frasi sospette, oscuramento IBAN/CF), ChatRateLimiter (Bucket4j), PromptCanary, SafeGuardAdvisor opzionale (spento), max-tokens 800, TOP_K fisso, system prompt con regola di riservatezza e {canary}",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/security/InputGuard.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/security/ChatRateLimiter.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/security/PromptCanary.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/ChatService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/config/ChatClientConfig.java",
+        "industriatech/src/main/resources/prompts/system-prompt.st",
+        "industriatech/src/main/resources/application.properties",
+        "industriatech/pom.xml"
+      ],
+      "esito": "ok",
+      "nota_didattica": "I messaggi bloccati non chiamano il modello e non entrano nella memoria; dopo il guard si usa solo il testo ripulito."
+    },
+    {
+      "id": 52,
+      "data": "2026-11-06T01:47:00+01:00",
+      "prompt": "prompt/08-implementare-guardrail.md",
+      "lezione": "lezioni/08-guardrail-difese-a-strati.md",
+      "azione": "Guardrail frontend: Markdown senza immagini, link con rel noopener noreferrer nofollow, messaggio per 429",
+      "file": [
+        "frontend/src/pages/ChatBot.jsx"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 53,
+      "data": "2026-11-06T01:58:00+01:00",
+      "prompt": "prompt/08-implementare-guardrail.md",
+      "lezione": "lezioni/08-guardrail-difese-a-strati.md",
+      "azione": "Test degli strati",
+      "file": [],
+      "esito": "ok",
+      "dettagli": {
+        "injection_banali": "3 su 3 bloccate in 0,0 s senza chiamare l'LLM",
+        "aggiramento_sinonimo": "supera InputGuard, rifiutato dal modello (regola system prompt)",
+        "pii": "IBAN e CF oscurati; 0 copie in chiaro in archivio e memoria",
+        "canarino": "attacco 'sviluppatore autorizzato' ha fatto ripetere il system prompt: stream interrotto, allarme nei log, parola rimossa dall'archivio",
+        "max_tokens": "risposta lunga troncata a ~490 parole",
+        "rate_limit": "12 richieste: 10 x 200, 2 x 429",
+        "safeguard_advisor": "con parola 'sponsor': bloccata domanda senza la parola (documenti), bloccata domanda innocua nella stessa chat (memoria), ok in chat nuova",
+        "output_browser": "0 immagini, HTML mostrato come testo, link con rel sicuro"
+      },
+      "limite_osservato": "Il canarino rileva ma non impedisce: le righe precedenti del system prompt erano già state inviate. Difesa vera: nessun segreto nel system prompt (LLM08).",
+      "pulizia": "Eliminate le 10 chat di test."
+    },
+    {
+      "id": 54,
+      "data": "2026-11-06T01:55:00+01:00",
+      "prompt": "richiesta diretta (bug)",
+      "lezione": "lezioni/09-osservabilita-e-test.md",
+      "azione": "Diagnosi: jobs/history/upload fallivano dal frontend di sviluppo",
+      "file": [],
+      "esito": "ok",
+      "causa": "Nessun backend in ascolto sulla 8081 (backend di VS Code spento; in passato la porta era stata occupata temporaneamente dalle istanze di test). In Docker (3000) tutto funzionava.",
+      "problema_ui": "La pagina mostrava 'Nessun file caricato' invece dell'errore, l'avviso era nel box nascosto e non c'erano nuovi tentativi.",
+      "verifica": "Avvio del backend come da VS Code: jobs/history 200 con CORS corretto; upload dal browser riuscito."
+    },
+    {
+      "id": 55,
+      "data": "2026-11-06T02:00:00+01:00",
+      "prompt": "richiesta diretta (bug)",
+      "lezione": "lezioni/09-osservabilita-e-test.md",
+      "azione": "Pagina di upload: avviso 'backend non risponde' sempre visibile, pulsante Riprova, nuovi tentativi ogni 5 s, storico 'non disponibile', messaggio chiaro sull'upload",
+      "file": [
+        "frontend/src/pages/UploadRag.jsx"
+      ],
+      "esito": "ok",
+      "verifica": "Backend spento: avviso visibile; backend riacceso: la pagina si riprende da sola senza ricaricare."
+    },
+    {
+      "id": 56,
+      "data": "2026-11-06T02:10:00+01:00",
+      "prompt": "prompt/09-implementare-test-metriche-chatbot-observability-e-logging.md",
+      "lezione": "lezioni/09-osservabilita-e-test.md",
+      "azione": "Osservabilità: Actuator (health, metrics), Zipkin (starter + container), sampling 100%, context-propagation, SimpleLoggerAdvisor (DEBUG in sviluppo, INFO in Docker)",
+      "file": [
+        "industriatech/pom.xml",
+        "industriatech/src/main/resources/application.properties",
+        "industriatech/src/main/java/com/gestionale/industriatech/config/ChatClientConfig.java",
+        "docker/docker-compose.yml"
+      ],
+      "esito": "ok",
+      "adattamento": "Spring Boot 4: proprietà management.tracing.export.zipkin.endpoint (in Boot 3 era management.zipkin.tracing.endpoint).",
+      "verifica": "Token in streaming inclusi di default (includeUsage(true) nel codice di Spring AI 2.0.1)."
+    },
+    {
+      "id": 57,
+      "data": "2026-11-06T02:15:00+01:00",
+      "prompt": "prompt/09-implementare-test-metriche-chatbot-observability-e-logging.md",
+      "lezione": "lezioni/09-osservabilita-e-test.md",
+      "azione": "PromptCanary: riconosce anche le frasi del system prompt (impronte), la fuga si ferma alla prima riga",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/security/PromptCanary.java"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 58,
+      "data": "2026-11-06T02:20:00+01:00",
+      "prompt": "prompt/09-implementare-test-metriche-chatbot-observability-e-logging.md",
+      "lezione": "lezioni/09-osservabilita-e-test.md",
+      "azione": "Test su 4 livelli con tag JUnit e surefire excludedGroups: InputGuardTest, SecurityComponentsTest, DeterministicServicesTest (livello 1), RagRetrievalTest (2), ChatAnswerQualityTest (3), AttackRegressionTest (4)",
+      "file": [
+        "industriatech/src/test/java/com/gestionale/industriatech/security/InputGuardTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/security/SecurityComponentsTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/service/DeterministicServicesTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/rag/RagRetrievalTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/rag/ChatAnswerQualityTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/rag/AttackRegressionTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/IndustriatechApplicationTests.java",
+        "industriatech/pom.xml"
+      ],
+      "esito": "ok",
+      "risultati": {
+        "livello_1": "20 test, 10 s, ./mvnw test",
+        "livello_2": "4/4 domande d'oro",
+        "livello_3": "risposta PERTINENTE (1.323 token in, 105 out)",
+        "livello_4": "7/7"
+      },
+      "bug_trovato": "PromptCanary con due costruttori: 'No default constructor found', l'app non sarebbe partita. Soluzione: @Autowired.",
+      "scoperta_sicurezza": "Prompt injection indiretta: il modello ha eseguito le istruzioni di un documento (listDepartments, findEmployeesByDepartment, prepareEmailDraft verso esterno@sito-falso.com). Bloccato dal controllo del dominio: 0 bozze. Il test verifica la proprietà di sicurezza e segnala la manipolazione."
+    },
+    {
+      "id": 59,
+      "data": "2026-11-06T02:30:00+01:00",
+      "prompt": "prompt/09-implementare-test-metriche-chatbot-observability-e-logging.md",
+      "lezione": "lezioni/09-osservabilita-e-test.md",
+      "azione": "Verifica dal vivo in Docker: metriche e tracce",
+      "file": [],
+      "esito": "ok",
+      "metriche": "gen_ai.client.token.usage: 1.838 input, 48 output (gpt-4.1-mini)",
+      "traccia": "POST /api/chat 13,2 s: embedding Ollama 7,4 s, gpt-4.1-mini 3,4 s + 0,8 s, tool 50 ms",
+      "nota": "Conflitto di nomi temporaneo di Docker Compose durante la ricreazione del backend: risolto rilanciando up.",
+      "pulizia": "Chat di prova eliminata; chunk, memoria, chat e bozze di test a zero."
+    },
+    {
+      "id": 60,
+      "data": "2026-11-06T15:00:00+01:00",
+      "prompt": "prompt/10-migliorare-ingestione-documenti-e-accettare-formati-diversi.md",
+      "lezione": "lezioni/10-ingestione-documenti-e-formati.md",
+      "azione": "Risposta: perché il backend va avviato a mano (modalità Docker 3000/8090 vs sviluppo 5173/8081) e script npm run dev:docker",
+      "file": [
+        "frontend/package.json"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 61,
+      "data": "2026-11-06T15:02:00+01:00",
+      "prompt": "prompt/10-migliorare-ingestione-documenti-e-accettare-formati-diversi.md",
+      "lezione": "lezioni/10-ingestione-documenti-e-formati.md",
+      "azione": "Spring AI 2.0.1 -> 2.0.2; dipendenze spring-ai-tika-document-reader e spring-ai-markdown-document-reader",
+      "file": [
+        "industriatech/pom.xml"
+      ],
+      "esito": "ok",
+      "nota": "Spring AI 2.1 (overlap dei chunk) su Maven Central è ancora 2.1.0-RC2: non adottata."
+    },
+    {
+      "id": 62,
+      "data": "2026-11-06T15:05:00+01:00",
+      "prompt": "prompt/10-migliorare-ingestione-documenti-e-accettare-formati-diversi.md",
+      "lezione": "lezioni/10-ingestione-documenti-e-formati.md",
+      "azione": "Più formati: DocumentReaderService (PDF, Markdown, TXT, Tika per DOCX/PPTX/XLSX/ODT/RTF/HTML); rimosse le stampe temporanee della lezione 2; tag <documento> senza pagina per i non-PDF; regola 8 del system prompt",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentReaderService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/PdfProcessingService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/RagService.java",
+        "industriatech/src/main/resources/prompts/system-prompt.st"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 63,
+      "data": "2026-11-06T15:07:00+01:00",
+      "prompt": "prompt/10-migliorare-ingestione-documenti-e-accettare-formati-diversi.md",
+      "lezione": "lezioni/10-ingestione-documenti-e-formati.md",
+      "azione": "ID stabile, versioni e hash SHA-256: DocumentCatalogService (doppioni 409, nuova versione per stesso nome, sostituzione dopo indicizzazione riuscita, eliminazione); colonne documento_id/versione/hash_sha256; metadati document_id/version nei chunk; submit synchronized; file non indicizzati eliminati dal disco",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentCatalogService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentConflictException.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentIndexingService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/IndexingHistoryService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/entity/DocumentoIndicizzato.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/DocumentoIndicizzatoRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/LogIndicizzazioneRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/model/IndexingJob.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/IndexingJobResponse.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/DocumentHistoryResponse.java"
+      ],
+      "esito": "ok",
+      "scelta": "Prima si indicizza la nuova versione, poi si eliminano i chunk vecchi (filtro document_id == X AND source != nuovo file): se l'indicizzazione fallisce resta la versione precedente."
+    },
+    {
+      "id": 64,
+      "data": "2026-11-06T15:08:00+01:00",
+      "prompt": "prompt/10-migliorare-ingestione-documenti-e-accettare-formati-diversi.md",
+      "lezione": "lezioni/10-ingestione-documenti-e-formati.md",
+      "azione": "DELETE /api/documents/{documentId} solo admin (403), GET /api/me, gestione errori { message } per 403/404/409; APP_DEMO_USER_ADMIN in docker compose",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/DocumentController.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/CurrentUserController.java",
+        "docker/docker-compose.yml",
+        "docker/.env.example",
+        "industriatech/src/main/resources/application.properties"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 65,
+      "data": "2026-11-06T15:09:00+01:00",
+      "prompt": "prompt/10-migliorare-ingestione-documenti-e-accettare-formati-diversi.md",
+      "lezione": "lezioni/10-ingestione-documenti-e-formati.md",
+      "azione": "Migrazione all'avvio dei documenti esistenti: documento_id, versione 1, hash dal file; UPDATE vector_store con document_id (jsonb ||, idempotente)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/DocumentHistoryBackfill.java"
+      ],
+      "esito": "ok",
+      "risultato": "manuale-spring.pdf 4 chunk, OWASP 41, wstg-v4.2.pdf 925: tutti con document_id. Hash assente per manuale-spring.pdf (file non più su disco).",
+      "nota": "Il backend avviato da VS Code (devtools) si è riavviato con il nuovo codice dopo la compilazione ed ha eseguito la migrazione; i jar di Tika non sono nel suo classpath finché non si ricarica il progetto Maven."
+    },
+    {
+      "id": 66,
+      "data": "2026-11-06T15:10:00+01:00",
+      "prompt": "prompt/10-migliorare-ingestione-documenti-e-accettare-formati-diversi.md",
+      "lezione": "lezioni/10-ingestione-documenti-e-formati.md",
+      "azione": "Frontend upload: formati multipli, icone per formato, badge versione, stato Sostituito, pulsante Elimina (solo admin) con conferma, messaggi 409; etichetta fase Versioni nel log",
+      "file": [
+        "frontend/src/pages/UploadRag.jsx",
+        "frontend/src/components/IndexingLogModal.jsx"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 67,
+      "data": "2026-11-06T15:11:00+01:00",
+      "prompt": "prompt/10-migliorare-ingestione-documenti-e-accettare-formati-diversi.md",
+      "lezione": "lezioni/10-ingestione-documenti-e-formati.md",
+      "azione": "Test: DocumentIngestionTest (livello 1, 12 test) e DocumentLifecycleTest (integrazione: upload, doppione, versione 2, eliminazione)",
+      "file": [
+        "industriatech/src/test/java/com/gestionale/industriatech/service/DocumentIngestionTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/rag/DocumentLifecycleTest.java"
+      ],
+      "esito": "ok",
+      "risultati": "./mvnw test -DexcludedTestGroups=none: 46/46 (qualità PERTINENTE, attacchi 7/7)"
+    },
+    {
+      "id": 68,
+      "data": "2026-11-06T15:13:00+01:00",
+      "prompt": "prompt/10-migliorare-ingestione-documenti-e-accettare-formati-diversi.md",
+      "lezione": "lezioni/10-ingestione-documenti-e-formati.md",
+      "azione": "Bug trovato in Docker: 403 'Invalid CORS request' su ogni POST/DELETE dal browser sulla porta 3000. Causa: nginx 'proxy_set_header Host $host' (senza porta) -> Origin localhost:3000 diverso da Host localhost. Corretto con $http_host",
+      "file": [
+        "frontend/nginx.conf",
+        "lezioni/09-osservabilita-e-test.md"
+      ],
+      "esito": "ok",
+      "nota": "Bug presente dalla lezione 4; nella lezione 9 le prove in Docker erano state fatte con curl (senza Origin). Aggiunta una correzione nella lezione 9."
+    },
+    {
+      "id": 69,
+      "data": "2026-11-06T15:16:00+01:00",
+      "prompt": "prompt/10-migliorare-ingestione-documenti-e-accettare-formati-diversi.md",
+      "lezione": "lezioni/10-ingestione-documenti-e-formati.md",
+      "azione": "Verifica dal vivo in Docker (utente demo admin solo per la prova, poi ripristinato false)",
+      "file": [],
+      "esito": "ok",
+      "risultato": "DOCX v1 (Tika, 1 chunk); .md caricato dalla pagina (2 chunk); stesso .md con altro nome -> 409; DOCX v2 -> v1 SOSTITUITO e solo chunk v2 in pgvector; chat: '0,45 euro al chilometro (Fonte: regolamento-trasferte.docx)'; eliminazione dalla pagina; .exe -> 400; non admin -> 403 e nessun pulsante.",
+      "pulizia": "Documenti, log, file, chunk e chat di prova eliminati."
+    },
+    {
+      "id": 70,
+      "data": "2026-11-06T15:20:00+01:00",
+      "prompt": "prompt/10-migliorare-ingestione-documenti-e-accettare-formati-diversi.md",
+      "lezione": "lezioni/10-ingestione-documenti-e-formati.md",
+      "azione": "Lezione didattica 10, link di navigazione, sezione README",
+      "file": [
+        "lezioni/10-ingestione-documenti-e-formati.md",
+        "README.md"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 71,
+      "data": "2026-11-06T15:25:00+01:00",
+      "prompt": "prompt/11-collegamento-llm-wiki.md",
+      "lezione": "lezioni/11-collegare-llm-wiki-al-rag.md",
+      "azione": "Analisi del vault del docente (sola lettura): 144 pagine in wiki/ (334 KB), nessun 'department' nel frontmatter, wikilink per nome e non per percorso",
+      "file": [],
+      "esito": "ok"
+    },
+    {
+      "id": 72,
+      "data": "2026-11-06T15:30:00+01:00",
+      "prompt": "prompt/11-collegamento-llm-wiki.md",
+      "lezione": "lezioni/11-collegare-llm-wiki-al-rag.md",
+      "azione": "Pacchetto wiki/: WikiProperties, WikiEnabledCondition (wiki facoltativa), WikiConfig, WikiAccessException, WikiVault (path traversal, link simbolici, ricerca per nome), MarkdownNote (SnakeYAML SafeConstructor), WikiLink/WikiLinks",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiProperties.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiEnabledCondition.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiConfig.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiAccessException.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiVault.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/MarkdownNote.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiLink.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiLinks.java"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 73,
+      "data": "2026-11-06T15:35:00+01:00",
+      "prompt": "prompt/11-collegamento-llm-wiki.md",
+      "lezione": "lezioni/11-collegare-llm-wiki-al-rag.md",
+      "azione": "WikiIndexStateRepository (tabella wiki_index_state creata all'avvio su PostgreSQL), WikiIngestionService (solo pagine cambiate, prima indicizza poi elimina con content_hash, titolo pagina/sezione nel testo, in background con stato), WikiTools.readWikiPage (ToolContext, permessi per reparto, tag pagina_wiki)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiIndexStateRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiReindexReport.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiStatusResponse.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiIngestionService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiTools.java"
+      ],
+      "esito": "ok",
+      "differenze_dalla_lezione": [
+        "wiki facoltativa invece di avvio bloccato",
+        "reindicizzazione asincrona (202 + stato) invece di risposta a fine lavoro",
+        "prima indicizza poi elimina, hash salvato solo a fine pagina",
+        "metadato section invece di page_number",
+        "readWikiPage accetta anche il nome del collegamento",
+        "tabella di stato creata all'avvio"
+      ]
+    },
+    {
+      "id": 74,
+      "data": "2026-11-06T15:38:00+01:00",
+      "prompt": "prompt/11-collegamento-llm-wiki.md",
+      "lezione": "lezioni/11-collegare-llm-wiki-al-rag.md",
+      "azione": "RagService: PUBLIC_DEPARTMENT, search per utente con filtro per reparto (post-filtro), attributi tipo=\"wiki\" e sezione nel tag documento; ChatService usa la ricerca per utente; ChatClientConfig registra readWikiPage se disponibile; system prompt regole 8 e 11; endpoint GET /api/documents/wiki/status e POST /api/documents/wiki/reindex",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/service/RagService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/ChatService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/config/ChatClientConfig.java",
+        "industriatech/src/main/resources/prompts/system-prompt.st",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/DocumentController.java",
+        "industriatech/src/main/resources/application.properties"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 75,
+      "data": "2026-11-06T15:40:00+01:00",
+      "prompt": "prompt/11-collegamento-llm-wiki.md",
+      "lezione": "lezioni/11-collegare-llm-wiki-al-rag.md",
+      "azione": "Frontend: riquadro LLM Wiki nella pagina di upload (stato, pulsante Aggiorna indice, avanzamento, report, pagine non riuscite)",
+      "file": [
+        "frontend/src/components/WikiPanel.jsx",
+        "frontend/src/pages/UploadRag.jsx"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 76,
+      "data": "2026-11-06T15:42:00+01:00",
+      "prompt": "prompt/11-collegamento-llm-wiki.md",
+      "lezione": "lezioni/11-collegare-llm-wiki-al-rag.md",
+      "azione": "Wiki di esempio per gli studenti (6 pagine dalle lezioni del corso, una riservata HR inventata); configurazione WIKI_VAULT_PATH: .env (VS Code, gitignored) e docker/.env con il vault del docente, .env.example, volume Docker in sola lettura con default sulla wiki di esempio",
+      "file": [
+        "llm-wiki-esempio/",
+        ".env.example",
+        ".gitignore",
+        "docker/docker-compose.yml",
+        "docker/.env.example"
+      ],
+      "esito": "ok",
+      "nota": "Creati .env e docker/.env (non versionati) contenenti solo WIKI_VAULT_PATH. La chiave OpenAI continua ad arrivare dalla shell."
+    },
+    {
+      "id": 77,
+      "data": "2026-11-06T15:45:00+01:00",
+      "prompt": "prompt/11-collegamento-llm-wiki.md",
+      "lezione": "lezioni/11-collegare-llm-wiki-al-rag.md",
+      "azione": "Test WikiTest (livello 1, 20 test): path traversal, link simbolici, YAML pericoloso, wikilink, reindicizzazione incrementale, Ollama spento, permessi dello strumento, citazioni",
+      "file": [
+        "industriatech/src/test/java/com/gestionale/industriatech/wiki/WikiTest.java"
+      ],
+      "esito": "ok",
+      "nota": "Un'asserzione del test era sbagliata (i [[...]] nei blocchi di codice devono restare): corretto il test, non il codice."
+    },
+    {
+      "id": 78,
+      "data": "2026-11-06T16:20:00+01:00",
+      "prompt": "prompt/11-collegamento-llm-wiki.md",
+      "lezione": "lezioni/11-collegare-llm-wiki-al-rag.md",
+      "azione": "Caso limite trovato con un riavvio a metà reindicizzazione: chunk salvati ma hash non registrato -> duplicati. Corretto: pulizia degli avanzi con lo stesso content_hash prima di aggiungere i chunk",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiIngestionService.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/wiki/WikiTest.java"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 79,
+      "data": "2026-11-06T16:25:00+01:00",
+      "prompt": "prompt/11-collegamento-llm-wiki.md",
+      "lezione": "lezioni/11-collegare-llm-wiki-al-rag.md",
+      "azione": "Log [WIKI] per le pagine richieste dal modello e non trovate; ricerca /api/rag/search con filtro per reparto (prima ignorava l'utente); nome del vault mostrato anche in Docker (APP_WIKI_DISPLAY_PATH)",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiTools.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/RagController.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/RagService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiProperties.java",
+        "docker/docker-compose.yml"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 80,
+      "data": "2026-11-06T16:45:00+01:00",
+      "prompt": "prompt/11-collegamento-llm-wiki.md",
+      "lezione": "lezioni/11-collegare-llm-wiki-al-rag.md",
+      "azione": "Verifica dal vivo in Docker con il vault del docente",
+      "file": [],
+      "esito": "ok",
+      "risultati": {
+        "prima_indicizzazione": "144 pagine, 616 chunk, 0 errori, ~56 min (bge-m3 su CPU, 5-10 s/chunk)",
+        "ripresa_dopo_riavvio": "24 invariate, 120 aggiornate, nessun duplicato",
+        "seconda_indicizzazione": "0,1 s, 0 aggiornate",
+        "doppio_avvio": "409",
+        "chat": "triade CIA con fonte concepts/CIA Triad.md; readWikiPage per nome sulla Lezione 01; ../CLAUDE.md e /etc/passwd.md rifiutati",
+        "test": "./mvnw test -DexcludedTestGroups=none: 66/66; domande d'oro 4/4 anche con la wiki indicizzata",
+        "doppioni": "ricerca OWASP Top 10: 5 chunk su 5 dalla wiki, nessuno dai PDF"
+      },
+      "pulizia": "Chat di prova eliminate. La chat 'Ciao' delle 15:32 non è di Claude ed è stata lasciata."
+    },
+    {
+      "id": 81,
+      "data": "2026-11-06T16:50:00+01:00",
+      "prompt": "prompt/11-collegamento-llm-wiki.md",
+      "lezione": "lezioni/11-collegare-llm-wiki-al-rag.md",
+      "azione": "Lezione didattica 11, link di navigazione, sezione README",
+      "file": [
+        "lezioni/11-collegare-llm-wiki-al-rag.md",
+        "lezioni/10-ingestione-documenti-e-formati.md",
+        "README.md"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 82,
+      "data": "2026-11-06T16:55:00+01:00",
+      "prompt": "prompt/12-wiki-explorer-implementare-un-esploratore-e-interrogatore-della-wiki.md",
+      "lezione": "lezioni/12-wiki-explorer.md",
+      "azione": "Analisi: Wiki Explorer integrato nel gestionale come scheda (non progetto separato); vault del docente senza immagini, video o formule, con aliases; riuso delle classi wiki della lezione 11",
+      "file": [],
+      "esito": "ok"
+    },
+    {
+      "id": 83,
+      "data": "2026-11-06T17:00:00+01:00",
+      "prompt": "prompt/12-wiki-explorer-implementare-un-esploratore-e-interrogatore-della-wiki.md",
+      "lezione": "lezioni/12-wiki-explorer.md",
+      "azione": "Backend: WikiPage (con reparto), WikiIndex immutabile (resolve come Obsidian, backlink, asset), WikiCatalog (sostituzione atomica), WikiSearchService (punteggio, accenti, reparti), WikiWebMarkdown, WikiVault.listAssets/assetFile, WikiAskTools (searchWiki, readWikiPage, pagine lette nel ToolContext), WikiAskService (ChatClient dedicato), WikiController, WikiAskController (rate limit + InputGuard), DTO",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiPage.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiIndex.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiCatalog.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/SearchHit.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiSearchService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiWebMarkdown.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiAskTools.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiAskService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/wiki/WikiVault.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/WikiController.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/WikiAskController.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/WikiPageView.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/WikiAskRequest.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/WikiAskResponse.java"
+      ],
+      "esito": "ok",
+      "aggiunte_rispetto_alla_lezione": [
+        "permessi per reparto su ricerca, pagina, backlink, link e strumenti",
+        "header CSP sandbox e nosniff sugli asset (SVG con JavaScript)",
+        "pagine lette registrate dal codice",
+        "estratto che preferisce il testo ai titoli",
+        "guardrail della chat su Chiedi"
+      ]
+    },
+    {
+      "id": 84,
+      "data": "2026-11-06T17:10:00+01:00",
+      "prompt": "prompt/12-wiki-explorer-implementare-un-esploratore-e-interrogatore-della-wiki.md",
+      "lezione": "lezioni/12-wiki-explorer.md",
+      "azione": "Frontend: scheda Wiki Explorer con rotte annidate (/wiki, /wiki/page, /wiki/ask), wikiApi.js, WikiMarkdown (remark-gfm, remark-math, rehype-katex, niente rehype-raw, niente immagini nelle risposte), stili .wiki-markdown; corretti due avvisi oxlint (setState negli effetti)",
+      "file": [
+        "frontend/src/App.jsx",
+        "frontend/src/api/wikiApi.js",
+        "frontend/src/components/WikiMarkdown.jsx",
+        "frontend/src/pages/wiki/",
+        "frontend/src/index.css",
+        "frontend/package.json"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 85,
+      "data": "2026-11-06T17:12:00+01:00",
+      "prompt": "prompt/12-wiki-explorer-implementare-un-esploratore-e-interrogatore-della-wiki.md",
+      "lezione": "lezioni/12-wiki-explorer.md",
+      "azione": "Wiki di esempio: formula della similarità del coseno, diagramma SVG della pipeline RAG, alias",
+      "file": [
+        "llm-wiki-esempio/wiki/"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 86,
+      "data": "2026-11-06T17:15:00+01:00",
+      "prompt": "prompt/12-wiki-explorer-implementare-un-esploratore-e-interrogatore-della-wiki.md",
+      "lezione": "lezioni/12-wiki-explorer.md",
+      "azione": "Test WikiExplorerTest (17): link, ambiguità, backlink, ricerca, reparti, link per il web, asset, strumenti",
+      "file": [
+        "industriatech/src/test/java/com/gestionale/industriatech/wiki/WikiExplorerTest.java"
+      ],
+      "esito": "ok",
+      "nota": "Due aspettative sbagliate (index.md contiene le parole cercate): corretti i test, non il codice. ./mvnw test -DexcludedTestGroups=llm: 75/75."
+    },
+    {
+      "id": 87,
+      "data": "2026-11-06T17:30:00+01:00",
+      "prompt": "prompt/12-wiki-explorer-implementare-un-esploratore-e-interrogatore-della-wiki.md",
+      "lezione": "lezioni/12-wiki-explorer.md",
+      "azione": "Verifica dal vivo in Docker",
+      "file": [],
+      "esito": "ok",
+      "risultati": {
+        "avvio": "144 pagine in memoria in 257 ms",
+        "ricerca": "ransomware: 20 risultati, 1 richiesta (debounce); la guida CISA (41) supera la pagina Ransomware (30) per sottostringa",
+        "pagina": "Ransomware: 18 backlink, 20 collegamenti, navigazione senza ricaricare",
+        "sicurezza": "../CLAUDE.md -> 404, asset ../../etc/passwd.png -> 400",
+        "chiedi": "difese ransomware PMI: 9,8 s, searchWiki + 2 pagine; il modello NON ha letto index.md e NON ha citato i percorsi tra parentesi quadre",
+        "wiki_esempio": "formula KaTeX e SVG mostrati; pagina HR invisibile per IT (montata temporaneamente, senza reindicizzare pgvector, poi ripristinato il vault del docente)"
+      }
+    },
+    {
+      "id": 88,
+      "data": "2026-11-06T17:40:00+01:00",
+      "prompt": "prompt/12-wiki-explorer-implementare-un-esploratore-e-interrogatore-della-wiki.md",
+      "lezione": "lezioni/12-wiki-explorer.md",
+      "azione": "Lezione didattica 12, link di navigazione, sezione README",
+      "file": [
+        "lezioni/12-wiki-explorer.md",
+        "lezioni/11-collegare-llm-wiki-al-rag.md",
+        "README.md"
+      ],
+      "esito": "ok"
+    },
+    {
+      "id": 89,
+      "data": "2026-11-06T17:55:00+01:00",
+      "prompt": "prompt/13-implementare-spring-security-con-login-registrazione-permessi-e-config-cors-e-di-sicurezza-globali.md",
+      "lezione": "lezioni/13-piano-spring-security.md",
+      "azione": "Analisi della codebase e piano di Spring Security (nessuna modifica al codice): censimento di 9 controller e 36 endpoint, utente demo, conversazioni senza proprietario, 9 @CrossOrigin duplicati, 12 fetch + axios senza credenziali/CSRF, Actuator pubblico, endpoint di prova. Il prompt chiede di fermarsi in attesa di approvazione.",
+      "file": [
+        "lezioni/13-piano-spring-security.md"
+      ],
+      "esito": "in attesa di approvazione",
+      "decisioni_aperte": [
+        "A: proxy di Vite in sviluppo (consigliato) o chiamate dirette alla 8081",
+        "B: gestione account per assegnare reparto e ruolo (consigliata)",
+        "C: limite ai tentativi di login (consigliato)"
+      ]
+    },
+    {
+      "id": 90,
+      "data": "2026-11-06T17:50:00+01:00",
+      "prompt": "prompt/13-implementare-spring-security-con-login-registrazione-permessi-e-config-cors-e-di-sicurezza-globali.md",
+      "lezione": "lezioni/13-piano-spring-security.md",
+      "azione": "Fase 1 (piano approvato con le scelte A, B, C): Spring Security nel backend. Account su MariaDB (vincolo unique sull'email, BCrypt), registrazione sempre USER, login JSON con nuovo ID di sessione, logout, /api/auth/me, /api/auth/csrf, csrf().spa(), CORS globale (rimossi 8 @CrossOrigin e /api/me), matrice dei permessi con denyAll finale, 401/403 JSON (messaggio dedicato per il CSRF), Actuator: health pubblico e metrics solo admin, primo admin da variabili d'ambiente, gestione account per admin, limite di 5 tentativi di login al minuto.",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/config/SecurityConfig.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/entity/Account.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/entity/RuoloAccount.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/AccountRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/dto/auth/",
+        "industriatech/src/main/java/com/gestionale/industriatech/security/AccountUserDetails.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/security/AccountUserDetailsService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/security/LoginRateLimiter.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/security/AdminBootstrap.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/AccountService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/AccountConflictException.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/AuthController.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/AdminAccountController.java",
+        "industriatech/pom.xml",
+        "industriatech/src/main/resources/application.properties",
+        "docker/docker-compose.yml",
+        "docker/.env.example",
+        ".env.example",
+        "industriatech/src/test/java/com/gestionale/industriatech/security/SecurityMatrixTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/security/AuthFlowTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/security/AccountSecurityTest.java"
+      ],
+      "esito": "ok, in attesa del comando per la fase 2",
+      "test": "57 nuovi test di sicurezza (matrice 37 endpoint x 3 profili al primo colpo); ./mvnw test -DexcludedTestGroups=llm: 132/132",
+      "correzioni": [
+        "email con spazi rifiutata prima della normalizzazione: ora strip() prima della validazione",
+        "test che condividevano il limitatore dei tentativi: email diverse per test",
+        "messaggio 403 dedicato per il token CSRF mancante"
+      ],
+      "verifica_dal_vivo": "istanza di prova sulla 8091: 401 anonimo, health 200 / metrics 401, /dati-generici 401, login senza CSRF 403, ruolo ADMIN nel JSON ignorato (USER), cookie JSESSIONID HttpOnly, USER: GET dipendenti 200, POST dipendenti 403, upload 403, metrics 403, origine non prevista 403. Account di prova eliminato.",
+      "limiti_fase": "CurrentUserProvider usa ancora l'utente demo (fase 2); il frontend non invia ancora cookie e token (fase 3): fino alla fase 3 l'interfaccia riceverà 401."
+    },
+    {
+      "id": 91,
+      "data": "2026-11-06T18:05:00+01:00",
+      "prompt": "prompt/13-implementare-spring-security-con-login-registrazione-permessi-e-config-cors-e-di-sicurezza-globali.md",
+      "lezione": "lezioni/13-piano-spring-security.md",
+      "azione": "Fase 2: utente reale nel chatbot. CurrentUserProvider dal SecurityContext (fail closed), AccountRefreshFilter (ruolo/reparto aggiornati a ogni richiesta, account disabilitato buttato fuori), UserContext con reparto null, proprietario delle conversazioni (utente_id, controlli prima dello streaming e prima del save JPA, chat legacy visibili solo agli admin), utente demo rimosso da properties, compose e .env.example.",
+      "file": [
+        "industriatech/src/main/java/com/gestionale/industriatech/security/AccountRefreshFilter.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/security/CurrentUserProvider.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/security/UserContext.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/config/SecurityConfig.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/entity/Conversazione.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/repository/ConversazioneRepository.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/ConversationService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/service/ChatService.java",
+        "industriatech/src/main/java/com/gestionale/industriatech/controller/ChatBotController.java",
+        "industriatech/src/main/resources/application.properties",
+        "docker/docker-compose.yml",
+        "docker/.env.example",
+        "industriatech/src/test/java/com/gestionale/industriatech/support/TestUsers.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/security/ConversationOwnershipTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/security/ChatSseSecurityTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/security/AuthFlowTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/security/SecurityMatrixTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/rag/AttackRegressionTest.java",
+        "industriatech/src/test/java/com/gestionale/industriatech/wiki/WikiExplorerTest.java"
+      ],
+      "esito": "ok, in attesa del comando per la fase 3",
+      "test": "./mvnw test -DexcludedTestGroups=llm: 139/139; AttackRegressionTest 7/7 e ChatAnswerQualityTest PERTINENTE con utente di test",
+      "nota_sicurezza": "save() di JPA con un ID esistente aggiorna la riga: senza il controllo un utente avrebbe potuto prendersi la chat di un altro conoscendone l'ID.",
+      "dati": "Nessun account rimasto; la chat 'Ciao' esistente non ha proprietario: visibile solo agli admin."
     }
   ]
 }
